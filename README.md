@@ -246,7 +246,61 @@ npm run evaluate
 ```
 
 ### 11B. High-Concurrency Stress Test (`scripts/stresstest.js`)
-The stress test in Section 11B evaluates system throughput, connection pooling resilience (`maxPoolSize: 20`, `maxIdleTimeMS: 60000`), and event-loop lag under 20 concurrent connections. Results are automatically published to [`docs/stress-test-results.md`](docs/stress-test-results.md). Run via:
+The stress test in Section 11B evaluates system throughput, connection pooling resilience (`maxPoolSize: 50`, `maxIdleTimeMS: 60000`), event-loop delay, concurrency correctness, and failure injection. Results are automatically published to [`docs/stress-test-results.md`](docs/stress-test-results.md). Run via:
 ```bash
-npm run stresstest
+npm run stress:quick    # Quick evaluation of S1-S7 at 1/3 duration (~75s)
+npm run stress          # Full load benchmark ramps
+npm run stress:soak     # Soak mode with 5-minute memory and event-loop monitoring
 ```
+
+---
+
+## 🛡️ 12. Stress & Resilience Engineering
+
+Study Buddy incorporates an honest, production-conscious resilience and stress testing harness (`scripts/stresstest.js`) designed to observe system behavior under extreme load, high concurrency, simulated external failures, and deliberate abuse.
+
+### Safety Invariants (`STRESS_MODE`)
+- **Database Isolation:** When `STRESS_MODE=true`, the server connects to an isolated `study_buddy_stress` database, guaranteeing demo and production records are never touched.
+- **Cost Protection:** AI question generation uses curated question banks wrapped in the same `withTimeout` (15s) and retry wrappers; embedding generation uses deterministic vector hashing to avoid third-party API charges.
+- **Fail-Safe Invariant:** When `STRESS_MODE=false`, all simulation flags (`FAIL_EMBEDDING`, `FAIL_AI`, `DELAY_AI_MS`), bypass headers, and test routes are strictly disabled and rejected (verified by unit test `tests/stressModeInvariants.test.js`).
+
+### Summary of Benchmark Results (Atlas M0 Free Tier)
+
+| Scenario | Tested Conditions | Observed Outcome & Verdict | Key Architectural Insight |
+| :--- | :--- | :--- | :--- |
+| **S1: Health Baseline** | `GET /api/health`, 20 conns, 10s | 87 req/s, p50: 105ms, p95: 793ms, 0 errors | Real `ping: 1` command to remote Atlas cloud over WAN latency. |
+| **S2: Read Path Ramp** | `GET /api/memories` at 10..200 conns | Knee at 10 conns (p95: 633ms, 0% errors) | Optimized with compound index `{ ownerId: 1, createdAt: -1 }` to eliminate in-memory sorting. |
+| **S3: Question Ramp** | `POST /api/question` at 5..40 conns | 26 req/s at 20 conns, 0% errors | Exercised AI timeout and retry wrappers with memory retrieval. |
+| **S4: Write Path** | `POST /api/answer` at 10, 25, 50 conns | **Zero 5xx errors across all steps** | Safe, persistent writing of attempt records and stats. |
+| **S5: Concurrency** | 50 concurrent wrong, 50 correct, 20 corrections | **100% exact atomic updates** | Handled with atomic `$inc` and unique partial indexes (`code 11000` retry). |
+| **S6: Abuse Limits** | Rapid flood, 10kb body, invalid inputs, injection | **100% expected status codes** | 429 on rate limit flood, 413 on oversized body, 401 on missing auth, 400 on operator injection. |
+| **S7: Failure Injection**| `failEmbedding`, `failAi`, `delayAiMs=20000` | **100% graceful degradation** | Degraded mode returns 200 with fallback questions within 15.5s; health p95 remained under 150ms. |
+
+### Performance Tuning Applied
+1. **Connection Pool Expansion (`MONGO_MAX_POOL: 20 -> 50`):** Reduces Atlas connection wait time under concurrent bursts.
+2. **Compound Index on Memory Reads (`{ ownerId: 1, createdAt: -1 }`):** Eliminates in-memory sorting on paginated history reads.
+3. **Response Projection in Memory List (`{ embedding: 0, evidence: 0 }`):** Shrinks memory payload size over WAN.
+
+### Honest Limitations
+> **These benchmark measurements evaluate backend and database behavior, concurrency control, and failure fallbacks under simulated conditions. These are not production capacity claims.**
+
+1. **Single Node.js Process:** Run against a single instance on a local development workstation.
+2. **Network Round-Trip Latency:** All pings and queries transit WAN loop to MongoDB Atlas M0 Free Tier (baseline ~100–150ms roundtrip).
+3. **Deterministic Vectors:** Synthetic embedding vectors carry no semantic meaning; retrieval quality is measured separately in Section 11A.
+4. **Atlas M0 Throttles:** Free-tier clusters enforce hardware and connection constraints; production deployments should utilize Atlas M10+ dedicated clusters.
+
+### How to Run Stress Tests Locally
+```bash
+# 1. Enable STRESS_MODE in your .env
+STRESS_MODE=true
+
+# 2. Setup the isolated stress collections and indexes
+npm run setup
+
+# 3. Start the Study Buddy server
+npm start
+
+# 4. In a separate terminal, run the benchmark
+npm run stress:quick
+```
+
