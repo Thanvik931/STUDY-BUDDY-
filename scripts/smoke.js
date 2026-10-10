@@ -36,7 +36,7 @@ async function runSmokeTests() {
     const res = await fetch(`${BASE_URL}/health`);
     if (!res.ok) throw new Error(`Status ${res.status}`);
     const data = await res.json();
-    if (data.status !== 'ok' || data.database !== 'connected') throw new Error('Database not connected');
+    if (data.status !== 'ok' || data.mongo !== 'ok') throw new Error('MongoDB ping was not ok');
   });
 
   // 2. POST /api/students

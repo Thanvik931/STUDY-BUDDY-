@@ -5,29 +5,30 @@
 
 import express from 'express';
 import { getDB } from '../db.js';
+import { env } from '../config/env.js';
 
 const router = express.Router();
 
 router.get('/health', async (req, res) => {
+  let mongo = 'down';
+
   try {
     const db = getDB();
-    // Ping MongoDB cluster
+    // Real ping to MongoDB Atlas cluster
     await db.command({ ping: 1 });
-
-    res.status(200).json({
-      status: 'ok',
-      service: 'Study Buddy Agentic Memory Engine',
-      database: 'connected',
-      timestamp: new Date().toISOString()
-    });
+    mongo = 'ok';
   } catch (err) {
-    res.status(503).json({
-      error: {
-        code: 'DATABASE_UNAVAILABLE',
-        message: 'Database connection failed: ' + err.message
-      }
-    });
+    mongo = 'down';
   }
+
+  const isHealthy = mongo === 'ok';
+  const status = isHealthy ? 'ok' : 'down';
+
+  res.status(isHealthy ? 200 : 503).json({
+    status,
+    stressMode: env.STRESS_MODE,
+    mongo
+  });
 });
 
 export default router;
