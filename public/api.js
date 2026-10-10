@@ -35,6 +35,12 @@ export const api = {
     return this.request('/api/auth/me');
   },
 
+  async quickLogin() {
+    return this.request('/api/auth/quick-login', {
+      method: 'POST'
+    });
+  },
+
   async getFormToken() {
     return this.request('/api/auth/form-token');
   },

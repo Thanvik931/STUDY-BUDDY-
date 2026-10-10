@@ -131,28 +131,13 @@ async function init() {
 
 async function autoLoginOrPrompt() {
   try {
-    // Attempt login with default demo student
-    const defaultUser = 'student_ravi';
-    const defaultPass = 'correct horse battery staple';
-    const loginData = await api.login(defaultUser, defaultPass);
-    if (loginData?.user) {
-      setUser(loginData.user);
+    const quickData = await api.quickLogin();
+    if (quickData?.user) {
+      setUser(quickData.user);
       return;
     }
   } catch (_) {
-    // If user does not exist yet, create account
-    try {
-      const defaultUser = 'student_ravi';
-      const defaultPass = 'correct horse battery staple';
-      const signupData = await api.signup(defaultUser, 'Ravi Kumar', defaultPass);
-      if (signupData?.user) {
-        setUser(signupData.user);
-        return;
-      }
-    } catch (_) {
-      // Show login modal
-      openAuthModal();
-    }
+    openAuthModal();
   }
 }
 

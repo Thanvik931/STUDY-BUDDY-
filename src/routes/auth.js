@@ -185,6 +185,54 @@ router.post('/auth/signup', csrfProtection, async (req, res, next) => {
   }
 });
 
+// POST /api/auth/quick-login - Instant demo student login for seamless local testing
+router.post('/auth/quick-login', async (req, res, next) => {
+  try {
+    const db = getDB();
+    const demoUsername = 'student_ravi';
+    const usernameLower = demoUsername.toLowerCase();
+    let user = await db.collection('users').findOne({ usernameLower });
+
+    const now = new Date();
+    if (!user) {
+      const passwordHash = await hashPassword('correct horse battery staple');
+      user = {
+        _id: new ObjectId(),
+        username: demoUsername,
+        usernameLower,
+        displayName: 'Ravi Kumar (Student)',
+        passwordHash,
+        role: 'student',
+        acceptedTermsVersion: '1.0',
+        acceptedTermsAt: now,
+        createdAt: now,
+        lastLoginAt: now
+      };
+      await db.collection('users').insertOne(user);
+    } else {
+      await db.collection('users').updateOne(
+        { _id: user._id },
+        { $set: { lastLoginAt: now } }
+      );
+    }
+
+    const token = await createSession(user._id);
+    res.cookie(COOKIE_NAME, token, getCookieOptions());
+
+    res.status(200).json({
+      message: 'Logged in successfully as demo student',
+      user: {
+        _id: user._id.toString(),
+        username: user.username,
+        displayName: user.displayName,
+        role: user.role
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // POST /api/auth/login - Authenticate student with timing attack mitigation
 router.post('/auth/login', csrfProtection, async (req, res, next) => {
   try {
