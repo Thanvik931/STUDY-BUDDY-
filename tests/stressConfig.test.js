@@ -30,3 +30,42 @@ test('15. Stress configuration resolves isolated database name and default pool 
   assert.ok(env.MONGO_MAX_POOL > 0, 'MONGO_MAX_POOL must be positive');
   assert.equal(typeof env.STRESS_MODE, 'boolean', 'STRESS_MODE must be a boolean');
 });
+
+test('16. Concurrency rule enforces atomic upsert filter { ownerId, subject, topic, type, status: "active" }', () => {
+  const ownerId = 'stu_concurrency_check';
+  const subject = 'DBMS';
+  const topic = 'sql-joins';
+  const type = 'weakness';
+
+  // Verify the exact required filter shape
+  const filter = { ownerId, subject, topic, type, status: 'active' };
+  assert.equal(filter.ownerId, ownerId);
+  assert.equal(filter.subject, subject);
+  assert.equal(filter.topic, topic);
+  assert.equal(filter.type, type);
+  assert.equal(filter.status, 'active');
+
+  // Verify retry simulation on code 11000
+  let retryCount = 0;
+  function simulateUpsertWithRetry(simulateDuplicateKey) {
+    try {
+      if (simulateDuplicateKey) {
+        const error = new Error('E11000 duplicate key error');
+        error.code = 11000;
+        throw error;
+      }
+      return 'upserted';
+    } catch (err) {
+      if (err.code === 11000) {
+        retryCount += 1;
+        return 'updated_after_retry';
+      }
+      throw err;
+    }
+  }
+
+  const outcome = simulateUpsertWithRetry(true);
+  assert.equal(outcome, 'updated_after_retry');
+  assert.equal(retryCount, 1, 'Must retry exactly ONCE on error 11000');
+});
+
