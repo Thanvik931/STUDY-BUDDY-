@@ -2110,7 +2110,11 @@ function renderSubjectCompareChart(subjects) {
     chartSubjectCompareInstance.destroy();
   }
 
-  const labels = ['DBMS', 'OS'];
+  const allSubjs = ['DBMS', 'OS', 'DSA', 'NETWORKING', 'SYSTEM_DESIGN'];
+  const activeSubjs = subjects.map((s) => s.subject);
+  const labels = allSubjs.filter((s) => activeSubjs.includes(s)).length > 0
+    ? allSubjs.filter((s) => activeSubjs.includes(s))
+    : ['DBMS', 'OS'];
   const passedData = labels.map((subj) => {
     const found = subjects.find((s) => s.subject === subj);
     return found ? found.passed : 0;
