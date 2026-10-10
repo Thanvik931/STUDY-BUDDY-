@@ -243,11 +243,21 @@ export async function correctMemory({ ownerId, memoryId, studentCorrectionText }
     throw new Error('Invalid memory ID format');
   }
 
-  const oldMemory = await db.collection('memories').findOne(
-    buildOwnerFilter(ownerId, { _id: targetId, status: 'active' })
+  // Atomically find and mark old memory as superseded so only ONE concurrent request succeeds
+  const updateResult = await db.collection('memories').findOneAndUpdate(
+    buildOwnerFilter(ownerId, { _id: targetId, status: 'active' }),
+    {
+      $set: {
+        status: 'superseded',
+        updatedAt: now,
+        expiresAt: calculateExpiryDate('weakness', true, now)
+      }
+    },
+    { returnDocument: 'before' }
   );
 
-  if (!oldMemory) {
+  const oldMemory = updateResult && (updateResult.value !== undefined ? updateResult.value : updateResult);
+  if (!oldMemory || !oldMemory._id) {
     return null;
   }
 
@@ -281,17 +291,36 @@ export async function correctMemory({ ownerId, memoryId, studentCorrectionText }
     supersededBy: null
   };
 
-  const insertResult = await db.collection('memories').insertOne(newStrengthDoc);
-  const newMemoryId = insertResult.insertedId;
+  let newMemoryId;
+  try {
+    const insertResult = await db.collection('memories').insertOne(newStrengthDoc);
+    newMemoryId = insertResult.insertedId;
+  } catch (err) {
+    if (err.code === 11000) {
+      // Concurrency race: an active strength already exists, update it atomically
+      const existingStrength = await db.collection('memories').findOneAndUpdate(
+        { ownerId, subject: oldMemory.subject, topic: oldMemory.topic, type: 'strength', status: 'active' },
+        {
+          $set: {
+            content: newStrengthDoc.content,
+            strength: 1.0,
+            updatedAt: now
+          }
+        },
+        { returnDocument: 'after' }
+      );
+      newMemoryId = existingStrength?._id || existingStrength?.value?._id;
+    } else {
+      throw err;
+    }
+  }
 
-  // Mark old memory as superseded
+  // Link superseded memory to new strength memory and set accurate expiry
   await db.collection('memories').updateOne(
     buildOwnerFilter(ownerId, { _id: targetId }),
     {
       $set: {
-        status: 'superseded',
         supersededBy: newMemoryId,
-        updatedAt: now,
         expiresAt: calculateExpiryDate(oldMemory.type, true, now)
       }
     }

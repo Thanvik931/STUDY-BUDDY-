@@ -114,8 +114,14 @@ export const answerSubmissionSchema = z.object({
 });
 
 export const memoryCorrectionSchema = z.object({
-  content: z.string().trim().min(5, 'Content must be at least 5 characters').max(300, 'Content must be at most 300 characters')
-});
+  content: z.string().trim().min(5, 'Content must be at least 5 characters').max(300, 'Content must be at most 300 characters').optional(),
+  studentCorrectionText: z.string().trim().min(5, 'Correction text must be at least 5 characters').max(300, 'Correction text must be at most 300 characters').optional()
+}).refine((data) => Boolean(data.content || data.studentCorrectionText), {
+  message: 'Correction content is required',
+  path: ['content']
+}).transform((data) => ({
+  content: data.content || data.studentCorrectionText
+}));
 
 // Zod schema for validating AI-generated questions
 export const aiGeneratedQuestionSchema = z.object({
