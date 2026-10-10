@@ -152,8 +152,18 @@ const lessonCode = document.getElementById('lesson-code');
 const lessonTakeaways = document.getElementById('lesson-takeaways');
 const quizFromLessonBtn = document.getElementById('quiz-from-lesson-btn');
 
+// Sidebar & Navigation Controls
+const sidebarStudentName = document.getElementById('sidebar-student-name');
+const sidebarMobileToggle = document.getElementById('sidebar-mobile-toggle');
+const appSidebar = document.getElementById('app-sidebar');
+const topHeaderTitle = document.getElementById('top-header-title');
+const sidebarExportBtn = document.getElementById('sidebar-export-btn');
+const sidebarLogoutBtn = document.getElementById('sidebar-logout-btn');
+const sidebarDeleteBtn = document.getElementById('sidebar-delete-btn');
+
 // Tab 3: Flashcards Elements
 const flashcardCounterBadge = document.getElementById('flashcard-counter-badge');
+const fcSearchInput = document.getElementById('fc-search-input');
 const fcViewGridBtn = document.getElementById('fc-view-grid-btn');
 const fcViewDeckBtn = document.getElementById('fc-view-deck-btn');
 const fcFlipAllBtn = document.getElementById('fc-flip-all-btn');
@@ -164,16 +174,23 @@ const fcGridView = document.getElementById('fc-grid-view');
 const fcDeckView = document.getElementById('fc-deck-view');
 const fcCardsGrid = document.getElementById('fc-cards-grid');
 
+const fcDeckStepText = document.getElementById('fc-deck-step-text');
+const fcDeckPercentText = document.getElementById('fc-deck-percent-text');
+const fcDeckProgressFill = document.getElementById('fc-deck-progress-fill');
 const flashcardElement = document.getElementById('flashcard-element');
 const fcSideLabel = document.getElementById('fc-side-label');
 const fcTopicLabel = document.getElementById('fc-topic-label');
 const fcMainText = document.getElementById('fc-main-text');
 const fcExtraBox = document.getElementById('fc-extra-box');
 const fcFormulaText = document.getElementById('fc-formula-text');
+const fcTrapBox = document.getElementById('fc-trap-box');
+const fcTrapText = document.getElementById('fc-trap-text');
 const fcRatingContainer = document.getElementById('fc-rating-container');
 const fcVoiceBtn = document.getElementById('fc-voice-btn');
 const fcPrevBtn = document.getElementById('fc-prev-btn');
+const fcFlipBtn = document.getElementById('fc-flip-btn');
 const fcNextBtn = document.getElementById('fc-next-btn');
+const fcShuffleBtn = document.getElementById('fc-shuffle-btn');
 
 // Tab 4: Mock Exam Elements
 const mockexamIntroCard = document.getElementById('mockexam-intro-card');
@@ -276,9 +293,12 @@ function showLandingView() {
 function setUser(user) {
   currentUser = user;
   viewLanding.style.display = 'none';
-  viewApp.style.display = 'block';
+  viewApp.style.display = 'flex';
 
   studentBadge.textContent = `${user.displayName || user.username} (${user.role || 'Student'})`;
+  if (sidebarStudentName) {
+    sidebarStudentName.textContent = user.displayName || user.username;
+  }
   loadSessionOpener();
   loadRecommendedLessons();
   loadTutorChatHistory();
@@ -452,6 +472,48 @@ function setupEventListeners() {
   correctCancelBtn.addEventListener('click', () => closeCorrectModal());
   correctSubmitBtn.addEventListener('click', () => submitMemoryCorrection());
 
+  // Sidebar Toggle & Actions
+  if (sidebarMobileToggle && appSidebar) {
+    sidebarMobileToggle.addEventListener('click', () => {
+      appSidebar.classList.toggle('open');
+    });
+  }
+  if (sidebarExportBtn) sidebarExportBtn.addEventListener('click', () => exportUserData());
+  if (sidebarLogoutBtn) sidebarLogoutBtn.addEventListener('click', () => handleLogout());
+  if (sidebarDeleteBtn) sidebarDeleteBtn.addEventListener('click', () => deleteUserAccount());
+
+  // Tab 3: Flashcards Extras (Search, Flip, Shuffle)
+  if (fcSearchInput) {
+    fcSearchInput.addEventListener('input', handleFlashcardSearch);
+  }
+  if (fcFlipBtn) {
+    fcFlipBtn.addEventListener('click', toggleFlashcardFlip);
+  }
+  if (fcShuffleBtn) {
+    fcShuffleBtn.addEventListener('click', shuffleFlashcards);
+  }
+
+  // Keyboard Shortcuts for Flashcards
+  document.addEventListener('keydown', (e) => {
+    const activeBtn = document.querySelector('.sidebar-nav-item.tab-btn.active');
+    if (!activeBtn || activeBtn.dataset.tab !== 'flashcards') return;
+    if (['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) return;
+
+    if (e.code === 'Space') {
+      e.preventDefault();
+      toggleFlashcardFlip();
+    } else if (e.code === 'ArrowRight') {
+      e.preventDefault();
+      nextFlashcard();
+    } else if (e.code === 'ArrowLeft') {
+      e.preventDefault();
+      prevFlashcard();
+    } else if (['1', '2', '3', '4'].includes(e.key)) {
+      const map = { '1': 'again', '2': 'hard', '3': 'good', '4': 'easy' };
+      handleRateFlashcard(map[e.key]);
+    }
+  });
+
   // GDPR Sovereignty
   exportDataBtn.addEventListener('click', () => exportUserData());
   deleteAccountBtn.addEventListener('click', () => deleteUserAccount());
@@ -460,6 +522,25 @@ function setupEventListeners() {
 function switchTab(tabId) {
   tabButtons.forEach((b) => b.classList.toggle('active', b.dataset.tab === tabId));
   tabPanels.forEach((p) => p.classList.toggle('active', p.id === `tab-${tabId}`));
+
+  const sectionTitles = {
+    tutor: '💬 1-on-1 Socratic AI Tutor',
+    quiz: '🎯 Adaptive Quiz (10-Question Master Set)',
+    lessons: '📖 Concept Lessons & Engineering Deep Dives',
+    flashcards: '🗂️ Spaced Repetition & Active Recall Flashcards',
+    mockexam: '⏱️ Timed Mock Exam Simulator (15 Questions)',
+    studyplan: '📅 AI Study Planner & Readiness Roadmap',
+    cheatsheet: '📄 High-Yield Revision Cheat Sheets',
+    memories: '🧠 MongoDB Cognitive Memory Inspector',
+    progress: '📊 Real-Time Analytics & Radar Insights'
+  };
+  if (topHeaderTitle && sectionTitles[tabId]) {
+    topHeaderTitle.textContent = sectionTitles[tabId];
+  }
+
+  if (appSidebar) {
+    appSidebar.classList.remove('open');
+  }
 
   if (tabId === 'tutor') loadTutorChatHistory();
   if (tabId === 'flashcards') loadFlashcards();
@@ -955,23 +1036,126 @@ function quizTopicFromLesson() {
 
 // --- ACTIVE RECALL FLASHCARDS ENGINE ---
 
-let allFlashcardsCache = [];
+const DEFAULT_FLASHCARDS = [
+  {
+    id: "fc-dbms-1",
+    subject: "DBMS",
+    topic: "sql-joins",
+    front: "What is the key functional difference between a LEFT JOIN and a FULL OUTER JOIN?",
+    back: "A LEFT JOIN preserves all tuples from the left relation and replaces unmatched right attributes with NULL.\nA FULL OUTER JOIN preserves all tuples from BOTH relations, filling NULLs whenever either side has no match in the join predicate.",
+    keyFormula: "LEFT JOIN = (R ⋈ S) ∪ (R - π_R(R ⋈ S)) × {NULL}",
+    examTip: "Common trap: If you filter attributes of the right table in a WHERE clause rather than the ON clause of a LEFT JOIN, it accidentally behaves as an INNER JOIN!"
+  },
+  {
+    id: "fc-dbms-2",
+    subject: "DBMS",
+    topic: "er-model-keys",
+    front: "What defines a Candidate Key versus a Super Key?",
+    back: "A Super Key is any set of attributes that uniquely identifies each tuple in a relation.\nA Candidate Key is a MINIMAL Super Key — no proper subset of its attributes can uniquely identify the relation.",
+    keyFormula: "Candidate Key K ⊆ Super Key S; ∀ A ∈ K, (K - {A}) is NOT a Super Key",
+    examTip: "Primary Key is simply one chosen Candidate Key. Candidate keys that are not selected become Alternate Keys."
+  },
+  {
+    id: "fc-dbms-3",
+    subject: "DBMS",
+    topic: "normalization",
+    front: "State the strict difference between 3NF and BCNF.",
+    back: "Both require 2NF. For every non-trivial functional dependency X → Y:\n- 3NF allows: X is a Super Key OR Y is a Prime Attribute (part of some candidate key).\n- BCNF strictly demands: X MUST be a Super Key (no prime attribute exception allowed!).",
+    keyFormula: "BCNF: ∀ (X → Y), X is Super Key. 3NF: ∀ (X → Y), X is Super Key ∨ Y is Prime.",
+    examTip: "Every BCNF relation is in 3NF, but a 3NF relation with overlapping candidate keys might violate BCNF. BCNF may not always preserve dependencies upon decomposition!"
+  },
+  {
+    id: "fc-dbms-4",
+    subject: "DBMS",
+    topic: "transactions-acid",
+    front: "What are the 3 classic Concurrency Read Phenomena prevented by SQL Isolation Levels?",
+    back: "1. Dirty Read: Transaction reads uncommitted data written by concurrent Tx (prevented by READ COMMITTED).\n2. Non-Repeatable Read: Tx re-reads a row and finds modified values (prevented by REPEATABLE READ).\n3. Phantom Read: Tx re-executes a range query and discovers newly inserted rows (prevented by SERIALIZABLE).",
+    keyFormula: "Isolation Hierarchy: Read Uncommitted < Read Committed < Repeatable Read < Serializable",
+    examTip: "Strict 2-Phase Locking (S2PL) holds all exclusive locks until commit/abort, guaranteeing conflict serializability and strict recoverable executions."
+  },
+  {
+    id: "fc-dbms-5",
+    subject: "DBMS",
+    topic: "indexing",
+    front: "Why are B+ Trees universally preferred over standard B-Trees for database disk indexing?",
+    back: "1. All record pointers/data are stored exclusively at leaf nodes; internal nodes only store navigation keys, yielding high fanout and shallow tree height (typically 3-4 I/O seeks).\n2. Leaf nodes form a doubly linked list, enabling O(log N) point lookup followed by high-speed sequential disk scans for range queries.",
+    keyFormula: "Tree Height h ≤ ⌈log_{⌈m/2⌉}(N)⌉; Leaf scan is O(K) sequential read.",
+    examTip: "Clustered indexes dictate the physical sort order of data pages (only 1 per table); Secondary/Non-clustered indexes contain pointers to row IDs or clustered keys."
+  },
+  {
+    id: "fc-os-1",
+    subject: "OS",
+    topic: "process-scheduling",
+    front: "What causes the Convoy Effect in FCFS and how does Round Robin solve it?",
+    back: "In FCFS (First-Come, First-Served), a single long CPU-bound process blocks all short I/O-bound processes behind it, devastating average waiting time.\nRound Robin (RR) preempts the running process after a fixed time quantum q, interleaving execution and bounding maximum wait time to (N - 1) * q.",
+    keyFormula: "If quantum q → ∞, RR degrades to FCFS. If q → 0, context switch overhead dominates.",
+    examTip: "Rule of thumb: Choose quantum q such that 80% of CPU bursts are shorter than q to balance responsiveness with context switch overhead."
+  },
+  {
+    id: "fc-os-2",
+    subject: "OS",
+    topic: "deadlocks",
+    front: "What are Coffman's 4 Necessary Conditions for Deadlock and how does Banker's Algorithm prevent it?",
+    back: "1. Mutual Exclusion: Resources non-shareable.\n2. Hold and Wait: Process holds one resource while awaiting another.\n3. No Preemption: Resources cannot be forcibly taken.\n4. Circular Wait: P0 waits for P1 ... Pn waits for P0.\nBanker's Algorithm simulates resource allocation to check if a Safe Sequence exists where Need_i ≤ Available for all processes.",
+    keyFormula: "Need[i][j] = Max[i][j] - Allocation[i][j]. Safe state guarantee: ∃ safe sequence <P_1, ..., P_n>",
+    examTip: "Deadlock Prevention invalidates at least one of the 4 conditions at design time. Deadlock Avoidance (Banker's) checks requests dynamically at runtime."
+  },
+  {
+    id: "fc-os-3",
+    subject: "OS",
+    topic: "memory-paging",
+    front: "Explain the TLB (Translation Lookaside Buffer) mechanism and Effective Memory Access Time (EMAT).",
+    back: "TLB is an on-chip associative cache storing recent Virtual Page Number (VPN) → Physical Frame Number (PFN) translations.\n- TLB Hit: Translation in 1 cycle, memory read in t_m → Total = t_TLB + t_m.\n- TLB Miss: Multi-level page table walk requires (k * t_m) additional memory accesses before accessing the target data.",
+    keyFormula: "EMAT = Hit_Ratio * (t_{TLB} + t_m) + (1 - Hit_Ratio) * (t_{TLB} + (k + 1) * t_m)",
+    examTip: "Page Fault occurs when the valid/invalid bit in the page table entry is 0 (page not in RAM, must fetch from disk swap space via hardware interrupt)."
+  },
+  {
+    id: "fc-os-4",
+    subject: "OS",
+    topic: "synchronization",
+    front: "What is the difference between a Mutex and a Counting Semaphore?",
+    back: "A Mutex is an ownership-locking mechanism with binary states (0/1); ONLY the thread that acquired the mutex can unlock it.\nA Semaphore is a signaling integer counter that can be incremented (signal/V) or decremented (wait/P) by ANY thread to manage resource pools or coordinate execution order.",
+    keyFormula: "Wait(S): while (S <= 0); S--; | Signal(S): S++;",
+    examTip: "Priority Inversion occurs when a high-priority task is blocked by a low-priority task holding a mutex. It is solved via Priority Inheritance Protocol."
+  },
+  {
+    id: "fc-os-5",
+    subject: "OS",
+    topic: "file-systems",
+    front: "How does an Unix Inode structure map file blocks?",
+    back: "An Inode contains metadata (size, permissions, timestamps) and direct/indirect block pointers:\n- 12 Direct Pointers: Point directly to disk data blocks.\n- 1 Singly Indirect: Points to a block filled with data block pointers.\n- 1 Doubly Indirect: Points to a block of indirect pointer blocks.\n- 1 Triply Indirect: Enables huge multi-terabyte file addressing.",
+    keyFormula: "Max Blocks = 12 + (B/4) + (B/4)^2 + (B/4)^3 where B is block size in bytes (4-byte pointers).",
+    examTip: "Hard links share the same inode number (cannot cross filesystems); Soft (Symbolic) links have their own inode containing the path string of the target."
+  }
+];
+
+let allFlashcardsCache = DEFAULT_FLASHCARDS;
+activeFlashcards = DEFAULT_FLASHCARDS;
 let currentFcSubject = 'ALL';
 let areAllCardsFlipped = false;
 
 async function loadFlashcards(subject = 'ALL') {
+  currentFcSubject = subject;
+  activeFlashcards = subject === 'ALL'
+    ? allFlashcardsCache
+    : allFlashcardsCache.filter((c) => c.subject === subject);
+  currentFlashcardIndex = 0;
+  isFlashcardFlipped = false;
+  renderFlashcardsGrid(activeFlashcards);
+  renderCurrentFlashcard();
+
   try {
-    currentFcSubject = subject;
     const data = await api.getFlashcards(subject === 'ALL' ? null : subject);
-    allFlashcardsCache = data.flashcards || [];
-    activeFlashcards = allFlashcardsCache;
-    currentFlashcardIndex = 0;
-    isFlashcardFlipped = false;
-    renderFlashcardsGrid(activeFlashcards);
-    renderCurrentFlashcard();
-  } catch (err) {
-    if (fcCardsGrid) fcCardsGrid.innerHTML = `<p style="color: var(--accent-red); padding: 1rem;">Error loading flashcards: ${err.message}</p>`;
-    if (fcMainText) fcMainText.textContent = `Error loading flashcards: ${err.message}`;
+    if (data.flashcards && data.flashcards.length > 0) {
+      allFlashcardsCache = data.flashcards;
+      activeFlashcards = subject === 'ALL'
+        ? allFlashcardsCache
+        : allFlashcardsCache.filter((c) => c.subject === subject);
+      renderFlashcardsGrid(activeFlashcards);
+      renderCurrentFlashcard();
+    }
+  } catch (_) {
+    // If network fails, already gracefully rendered from DEFAULT_FLASHCARDS
   }
 }
 
@@ -1156,15 +1340,26 @@ async function handleRateSingleCard(card, rating, btn) {
 
 function renderCurrentFlashcard() {
   if (activeFlashcards.length === 0) {
-    if (fcMainText) fcMainText.textContent = 'No flashcards available.';
+    if (fcMainText) fcMainText.textContent = 'No flashcards match your search or filter.';
+    if (fcDeckStepText) fcDeckStepText.textContent = '0 of 0';
+    if (fcDeckPercentText) fcDeckPercentText.textContent = '0% Completed';
+    if (fcDeckProgressFill) fcDeckProgressFill.style.width = '0%';
     return;
   }
 
   const card = activeFlashcards[currentFlashcardIndex];
+  const total = activeFlashcards.length;
+  const currentNum = currentFlashcardIndex + 1;
+  const pct = Math.round((currentNum / total) * 100);
+
+  if (fcDeckStepText) fcDeckStepText.textContent = `Card ${currentNum} of ${total}`;
+  if (fcDeckPercentText) fcDeckPercentText.textContent = `${pct}% Completed`;
+  if (fcDeckProgressFill) fcDeckProgressFill.style.width = `${pct}%`;
+
   if (flashcardCounterBadge) {
-    flashcardCounterBadge.textContent = `Card ${currentFlashcardIndex + 1} of ${activeFlashcards.length}`;
+    flashcardCounterBadge.textContent = `Showing ${total} Flashcards`;
   }
-  if (fcTopicLabel) fcTopicLabel.textContent = `${card.subject} / ${card.topic}`;
+  if (fcTopicLabel) fcTopicLabel.textContent = `${card.subject} • ${card.topic}`;
 
   if (!isFlashcardFlipped) {
     if (fcSideLabel) fcSideLabel.textContent = 'FRONT (QUESTION)';
@@ -1174,17 +1369,53 @@ function renderCurrentFlashcard() {
   } else {
     if (fcSideLabel) fcSideLabel.textContent = 'BACK (EXPLANATION & PROOF)';
     if (fcMainText) fcMainText.textContent = card.back;
-    if (card.keyFormula && fcExtraBox && fcFormulaText) {
+    if (fcExtraBox) {
       fcExtraBox.style.display = 'block';
-      fcFormulaText.textContent = card.keyFormula;
-    } else if (fcExtraBox) {
-      fcExtraBox.style.display = 'none';
+      if (card.keyFormula && fcFormulaText) {
+        fcFormulaText.textContent = card.keyFormula;
+      }
+      if (card.examTip && fcTrapBox && fcTrapText) {
+        fcTrapBox.style.display = 'block';
+        fcTrapText.textContent = `⚠️ Exam Trap: ${card.examTip}`;
+      } else if (fcTrapBox) {
+        fcTrapBox.style.display = 'none';
+      }
     }
-    if (fcRatingContainer) fcRatingContainer.style.display = 'flex';
+    if (fcRatingContainer) fcRatingContainer.style.display = 'grid';
   }
 
   if (fcPrevBtn) fcPrevBtn.disabled = currentFlashcardIndex === 0;
-  if (fcNextBtn) fcNextBtn.disabled = currentFlashcardIndex === activeFlashcards.length - 1;
+  if (fcNextBtn) fcNextBtn.disabled = currentFlashcardIndex === total - 1;
+}
+
+function shuffleFlashcards() {
+  activeFlashcards = [...activeFlashcards].sort(() => Math.random() - 0.5);
+  currentFlashcardIndex = 0;
+  isFlashcardFlipped = false;
+  renderCurrentFlashcard();
+  renderFlashcardsGrid(activeFlashcards);
+}
+
+function handleFlashcardSearch(e) {
+  const query = e.target.value.toLowerCase().trim();
+  const base = currentFcSubject === 'ALL'
+    ? allFlashcardsCache
+    : allFlashcardsCache.filter((c) => c.subject === currentFcSubject);
+
+  if (!query) {
+    activeFlashcards = base;
+  } else {
+    activeFlashcards = base.filter((c) =>
+      c.front.toLowerCase().includes(query) ||
+      c.back.toLowerCase().includes(query) ||
+      c.topic.toLowerCase().includes(query) ||
+      (c.keyFormula && c.keyFormula.toLowerCase().includes(query))
+    );
+  }
+  currentFlashcardIndex = 0;
+  isFlashcardFlipped = false;
+  renderCurrentFlashcard();
+  renderFlashcardsGrid(activeFlashcards);
 }
 
 function toggleFlashcardFlip() {

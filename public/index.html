@@ -132,40 +132,110 @@
 
 
   <!-- ================= VIEW 2: AUTHENTICATED STUDENT PORTAL ================= -->
-  <div id="view-app" style="display: none;">
-    <!-- Top Navigation Header -->
-    <header>
-      <div class="logo-area">
-        <span class="logo-icon">🌿</span>
-        <div class="logo-text">
-          <h1>Study Buddy</h1>
-          <p>Adaptive Engineering AI Companion &bull; MongoDB Cognitive Memory Engine</p>
+  <div id="view-app" class="app-layout" style="display: none;">
+    <!-- Modern Left Sidebar for All Features -->
+    <aside id="app-sidebar" class="app-sidebar">
+      <!-- Brand & Engine Title -->
+      <div class="sidebar-brand">
+        <div class="brand-icon">🌿</div>
+        <div class="brand-info">
+          <h2>Study Buddy</h2>
+          <span class="brand-badge">MongoDB AI Tutor</span>
         </div>
       </div>
-      <div class="student-bar">
-        <span>Logged in as:</span>
-        <span id="current-student-badge" class="badge-student">Student</span>
-        <button id="export-data-btn" class="btn-outline" title="Export my data as JSON">📥 Export Data</button>
-        <button id="delete-account-btn" class="btn-outline" style="border-color: #F87171; color: #FCA5A5;" title="Delete account and all memories">🗑️ Delete Account</button>
-        <button id="logout-btn" class="btn-outline" style="background-color: rgba(255,255,255,0.15); font-weight: 700;">🚪 Log Out</button>
+
+      <!-- Student Profile Card in Sidebar -->
+      <div class="sidebar-user-card">
+        <div class="user-avatar" id="sidebar-user-avatar">👨‍🎓</div>
+        <div class="user-details">
+          <div id="sidebar-student-name" class="user-name">Student</div>
+          <div class="user-status-pill">
+            <span class="status-dot"></span>
+            <span>Atlas Memory Sync</span>
+          </div>
+        </div>
       </div>
-    </header>
 
-    <!-- Navigation Tabs -->
-    <nav class="tabs-nav" style="flex-wrap: wrap; overflow-x: auto;">
-      <button class="tab-btn active" data-tab="tutor">💬 1-on-1 AI Tutor</button>
-      <button class="tab-btn" data-tab="quiz">🎯 Adaptive Quiz (10 Qs)</button>
-      <button class="tab-btn" data-tab="lessons">📖 Concept Lessons</button>
-      <button class="tab-btn" data-tab="flashcards">🗂️ Active Recall Flashcards</button>
-      <button class="tab-btn" data-tab="mockexam">⏱️ Timed Mock Exam</button>
-      <button class="tab-btn" data-tab="studyplan">📅 AI Study Planner</button>
-      <button class="tab-btn" data-tab="cheatsheet">📄 Revision Cheat Sheets</button>
-      <button class="tab-btn" data-tab="memories">🧠 Cognitive Memory</button>
-      <button class="tab-btn" data-tab="progress">📊 Progress & Analytics</button>
-    </nav>
+      <!-- Navigation Feature Items Grouped Logically -->
+      <nav class="sidebar-nav">
+        <div class="nav-category-title">LEARNING & TUTORING</div>
+        <button class="sidebar-nav-item tab-btn active" data-tab="tutor">
+          <span class="nav-icon">💬</span>
+          <span class="nav-label">1-on-1 AI Tutor</span>
+        </button>
+        <button class="sidebar-nav-item tab-btn" data-tab="quiz">
+          <span class="nav-icon">🎯</span>
+          <span class="nav-label">Adaptive Quiz (10 Qs)</span>
+        </button>
+        <button class="sidebar-nav-item tab-btn" data-tab="lessons">
+          <span class="nav-icon">📖</span>
+          <span class="nav-label">Concept Lessons</span>
+        </button>
+        <button class="sidebar-nav-item tab-btn" data-tab="flashcards">
+          <span class="nav-icon">🗂️</span>
+          <span class="nav-label">Active Recall Flashcards</span>
+        </button>
 
-    <!-- Main Content Container -->
-    <div class="container">
+        <div class="nav-category-title">EXAM & MASTERY</div>
+        <button class="sidebar-nav-item tab-btn" data-tab="mockexam">
+          <span class="nav-icon">⏱️</span>
+          <span class="nav-label">Timed Mock Exam</span>
+        </button>
+        <button class="sidebar-nav-item tab-btn" data-tab="studyplan">
+          <span class="nav-icon">📅</span>
+          <span class="nav-label">AI Study Planner</span>
+        </button>
+        <button class="sidebar-nav-item tab-btn" data-tab="cheatsheet">
+          <span class="nav-icon">📄</span>
+          <span class="nav-label">Revision Cheat Sheets</span>
+        </button>
+
+        <div class="nav-category-title">COGNITIVE OBSERVABILITY</div>
+        <button class="sidebar-nav-item tab-btn" data-tab="memories">
+          <span class="nav-icon">🧠</span>
+          <span class="nav-label">Cognitive Memory</span>
+        </button>
+        <button class="sidebar-nav-item tab-btn" data-tab="progress">
+          <span class="nav-icon">📊</span>
+          <span class="nav-label">Progress & Analytics</span>
+        </button>
+      </nav>
+
+      <!-- Sidebar Quick Controls -->
+      <div class="sidebar-footer">
+        <button id="sidebar-export-btn" class="sidebar-action-btn" title="Export my learning data as JSON">
+          <span>📥</span> <span>Export JSON Data</span>
+        </button>
+        <button id="sidebar-logout-btn" class="sidebar-action-btn logout-action" title="Log out of study session">
+          <span>🚪</span> <span>Log Out</span>
+        </button>
+        <button id="sidebar-delete-btn" class="sidebar-action-btn delete-action" title="Delete account and all memories">
+          <span>🗑️</span> <span>Delete Account</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- App Main Content Area -->
+    <div class="app-main-content">
+      <!-- Top Bar Header with Section Breadcrumb and Quick Status -->
+      <header class="app-top-header">
+        <div style="display: flex; align-items: center; gap: 0.85rem;">
+          <button id="sidebar-mobile-toggle" class="sidebar-toggle-btn" aria-label="Toggle Navigation">☰</button>
+          <div>
+            <h2 id="top-header-title" class="top-header-title">💬 1-on-1 Socratic AI Tutor</h2>
+            <span class="top-header-subtitle">Adaptive Engineering Companion &bull; MongoDB Atlas Memory</span>
+          </div>
+        </div>
+        <div class="top-header-right">
+          <span id="current-student-badge" class="badge-student">Student</span>
+          <button id="export-data-btn" class="btn-outline top-export-btn" style="color: var(--primary-dark); border-color: var(--primary-dark);" title="Export my data as JSON">📥 Export</button>
+          <button id="delete-account-btn" class="btn-outline top-del-btn" style="border-color: #F87171; color: #DC2626;" title="Delete account">🗑️ Delete</button>
+          <button id="logout-btn" class="btn-primary top-logout-btn" style="padding: 0.4rem 0.85rem; font-size: 0.82rem; font-weight: 700;">🚪 Log Out</button>
+        </div>
+      </header>
+
+      <!-- Content Page Body -->
+      <main class="app-page-body">
 
       <!-- ================= TAB 0: 1-ON-1 AI TUTOR CHAT ================= -->
       <section id="tab-tutor" class="tab-panel active">
@@ -429,60 +499,67 @@
       <!-- ================= TAB 3: ACTIVE RECALL FLASHCARDS ================= -->
       <section id="tab-flashcards" class="tab-panel">
         <div class="card">
-          <!-- Flashcards Header & Controls Bar -->
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.25rem;">
-            <div>
-              <h2 class="card-title" style="margin-bottom: 0.2rem;">Spaced Repetition & Active Recall Flashcards</h2>
-              <p style="font-size: 0.82rem; color: var(--text-muted);">
-                Test your mental recall. Rating yourself updates your cognitive memory documents in MongoDB.
-              </p>
+          <!-- Toolbar with Search and Mode Toggle -->
+          <div class="fc-toolbar-container">
+            <div class="fc-search-wrapper">
+              <span class="fc-search-icon">🔍</span>
+              <input type="text" id="fc-search-input" placeholder="Search cards by topic, formula, or keyword..." class="fc-search-input">
             </div>
-            
-            <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
-              <button id="fc-view-grid-btn" class="btn-primary" style="font-size: 0.82rem; padding: 0.35rem 0.75rem;">
-                🗂️ All Cards Grid
-              </button>
-              <button id="fc-view-deck-btn" class="btn-outline" style="color: var(--primary-dark); border-color: var(--primary-dark); font-size: 0.82rem; padding: 0.35rem 0.75rem;">
+            <div class="fc-view-toggle-bar">
+              <button id="fc-view-deck-btn" class="btn-primary" style="font-size: 0.82rem; padding: 0.4rem 0.85rem;">
                 🎯 Practice Deck
               </button>
-              <button id="fc-flip-all-btn" class="btn-outline" style="border-color: #64748B; color: #334155; font-size: 0.82rem; padding: 0.35rem 0.75rem;">
+              <button id="fc-view-grid-btn" class="btn-outline" style="color: var(--primary-dark); border-color: var(--primary-dark); font-size: 0.82rem; padding: 0.4rem 0.85rem;">
+                🗂️ All Cards Grid
+              </button>
+              <button id="fc-flip-all-btn" class="btn-outline" style="border-color: #64748B; color: #334155; font-size: 0.82rem; padding: 0.4rem 0.85rem;">
                 👁️ Flip All
               </button>
             </div>
           </div>
 
-          <!-- Subject Filter Pills -->
-          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
-            <div style="display: flex; gap: 0.5rem;">
-              <button id="fc-filter-all" class="hero-pill" style="cursor: pointer; background-color: var(--primary-dark); color: #FFFFFF;">All (10 Cards)</button>
-              <button id="fc-filter-dbms" class="hero-pill" style="cursor: pointer;">DBMS (5 Cards)</button>
-              <button id="fc-filter-os" class="hero-pill" style="cursor: pointer;">OS (5 Cards)</button>
+          <!-- Subject Filter Pills & Total Counter -->
+          <div class="fc-filter-pill-bar">
+            <div class="fc-filter-btn-group">
+              <button id="fc-filter-all" class="fc-subject-pill active">All (10 Cards)</button>
+              <button id="fc-filter-dbms" class="fc-subject-pill">DBMS (5 Cards)</button>
+              <button id="fc-filter-os" class="fc-subject-pill">OS (5 Cards)</button>
             </div>
             <span id="flashcard-counter-badge" class="stat-pill stat-pill-accuracy">Showing 10 Flashcards</span>
           </div>
 
-          <!-- VIEW 1: Full Grid Gallery of All Flashcards -->
-          <div id="fc-grid-view">
-            <div id="fc-cards-grid" class="flashcards-grid-layout">
-              <!-- Dynamically populated with all flashcard tiles -->
+          <!-- VIEW 1: Practice Deck Mode (Card-by-Card 3D Flip) -->
+          <div id="fc-deck-view">
+            <!-- Animated Progress Bar -->
+            <div class="fc-deck-progress-bar-wrap">
+              <div class="fc-deck-progress-info">
+                <span id="fc-deck-step-text">Card 1 of 10</span>
+                <span id="fc-deck-percent-text">10% Completed</span>
+              </div>
+              <div class="fc-progress-track">
+                <div id="fc-deck-progress-fill" class="fc-progress-fill" style="width: 10%;"></div>
+              </div>
             </div>
-          </div>
 
-          <!-- VIEW 2: Focus Practice Deck Mode (Card-by-Card Flip) -->
-          <div id="fc-deck-view" style="display: none;">
+            <!-- 3D Interactive Card -->
             <div class="flashcard-wrapper">
               <div id="flashcard-element" class="flashcard-card">
-                <div style="display: flex; justify-content: space-between;">
-                  <span id="fc-side-label" class="flashcard-hint-tag">FRONT (QUESTION)</span>
-                  <span id="fc-topic-label" class="stat-pill stat-pill-accuracy">Topic</span>
-                </div>
-                <p id="fc-main-text" class="flashcard-text">Loading flashcard...</p>
-                <div id="fc-extra-box" style="display: none; background: #F8FAFC; padding: 0.75rem; border-radius: 6px; border: 1px dashed var(--border-color); margin-bottom: 0.5rem;">
-                  <div style="font-size: 0.78rem; font-weight: 700; color: var(--primary-dark);">Key Theorem / Formula:</div>
-                  <code id="fc-formula-text" style="font-size: 0.85rem; color: #1E293B;"></code>
-                </div>
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                  <span class="flashcard-footer-tip">💡 Click card to flip / reveal back</span>
+                  <span id="fc-side-label" class="flashcard-hint-tag">FRONT (QUESTION)</span>
+                  <span id="fc-topic-label" class="stat-pill stat-pill-accuracy">DBMS • sql-joins</span>
+                </div>
+                <p id="fc-main-text" class="flashcard-text">What is the key functional difference between a LEFT JOIN and a FULL OUTER JOIN?</p>
+                <div id="fc-extra-box" style="display: none;">
+                  <div class="flashcard-formula-box">
+                    <div style="font-size: 0.76rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 0.25rem;">Key Theorem / Formula:</div>
+                    <code id="fc-formula-text">LEFT JOIN = (R ⋈ S) ∪ (R - π_R(R ⋈ S)) × {NULL}</code>
+                  </div>
+                  <div id="fc-trap-box" class="flashcard-trap-box" style="display: none;">
+                    <span id="fc-trap-text"></span>
+                  </div>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #F1F5F9; padding-top: 0.85rem; margin-top: 1rem;">
+                  <span class="flashcard-footer-tip">💡 Click card or press [Space] to flip</span>
                   <button id="fc-voice-btn" class="btn-speech">🔊 Speak</button>
                 </div>
               </div>
@@ -508,9 +585,23 @@
               </button>
             </div>
 
-            <div style="display: flex; justify-content: center; gap: 1rem; margin-top: 1.5rem;">
-              <button id="fc-prev-btn" class="btn-outline" style="color: var(--primary-dark); border-color: var(--primary-dark);">◀ Previous</button>
+            <!-- Deck Controls -->
+            <div class="fc-deck-controls-row">
+              <button id="fc-prev-btn" class="btn-outline" style="color: var(--primary-dark); border-color: var(--primary-dark);">◀ Previous Card</button>
+              <button id="fc-flip-btn" class="btn-primary" style="background-color: var(--primary-dark);">🔄 Flip Card</button>
               <button id="fc-next-btn" class="btn-primary">Next Card ▶</button>
+              <button id="fc-shuffle-btn" class="btn-outline" style="color: #475569; border-color: #94A3B8;">🔀 Shuffle</button>
+            </div>
+
+            <div style="text-align: center; margin-top: 0.85rem;">
+              <span class="fc-keyboard-hints-pill">⌨️ Shortcuts: [Space] Flip &bull; [← / →] Prev / Next &bull; [1-4] Rate Recall</span>
+            </div>
+          </div>
+
+          <!-- VIEW 2: Full Grid Gallery of All Flashcards -->
+          <div id="fc-grid-view" style="display: none;">
+            <div id="fc-cards-grid" class="flashcards-grid-layout">
+              <!-- Dynamically populated with all flashcard tiles -->
             </div>
           </div>
 
@@ -755,6 +846,7 @@
         </div>
       </section>
 
+      </main>
     </div>
   </div>
 
