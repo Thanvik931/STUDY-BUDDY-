@@ -1,6 +1,6 @@
 # Study Buddy - Stress Test Results
 
-> **Automated Benchmark Report** generated on `2026-10-10T12:36:44.926Z`.
+> **Automated Benchmark Report** generated on `2026-10-10T12:52:53.818Z`.
 
 ## 1. Test Environment & Configuration
 
@@ -16,29 +16,29 @@
 
 | Endpoint | Throughput (Avg) | Total Requests | Latency p50 | Latency p95 | Latency p99 | Errors |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **GET /api/health** | 924 req/s | 9,241 | 18 ms | 79 ms | 79 ms | 0 |
-| **GET /api/memories** | 1,263 req/s | 13,896 | 15 ms | 52 ms | 52 ms | 0 |
-| **GET /api/progress** | 1,050 req/s | 10,504 | 17 ms | 69 ms | 69 ms | 0 |
+| **GET /api/health** | 3,413 req/s | 37,543 | 4 ms | 20 ms | 20 ms | 0 |
+| **GET /api/memories** | 3,545 req/s | 38,991 | 4 ms | 18 ms | 18 ms | 0 |
+| **GET /api/progress** | 3,489 req/s | 34,880 | 4 ms | 18 ms | 18 ms | 0 |
 
 ## 3. Detailed Endpoint Breakdown
 
 ### A. Baseline Routing (`GET /api/health`)
-- **Average Throughput**: `924 req/s`
-- **Total Requests Handled**: `9241`
-- **Latency Distribution**: p50 = `18ms`, p95 = `79ms`, p99 = `79ms`
+- **Average Throughput**: `3413 req/s`
+- **Total Requests Handled**: `37543`
+- **Latency Distribution**: p50 = `4ms`, p95 = `20ms`, p99 = `20ms`
 - **Errors**: `0`
 
 ### B. Indexed Database Read (`GET /api/memories`)
-- **Average Throughput**: `1263 req/s`
-- **Total Requests Handled**: `13896`
-- **Latency Distribution**: p50 = `15ms`, p95 = `52ms`, p99 = `52ms`
+- **Average Throughput**: `3545 req/s`
+- **Total Requests Handled**: `38991`
+- **Latency Distribution**: p50 = `4ms`, p95 = `18ms`, p99 = `18ms`
 - **Index Utilized**: Compound index `{ ownerId: 1, status: 1, subject: 1, topic: 1 }` with `{ embedding: 0 }` projection
 - **Errors**: `0`
 
 ### C. Analytical Aggregation Pipeline (`GET /api/progress`)
-- **Average Throughput**: `1050 req/s`
-- **Total Requests Handled**: `10504`
-- **Latency Distribution**: p50 = `17ms`, p95 = `69ms`, p99 = `69ms`
+- **Average Throughput**: `3489 req/s`
+- **Total Requests Handled**: `34880`
+- **Latency Distribution**: p50 = `4ms`, p95 = `18ms`, p99 = `18ms`
 - **Index Utilized**: Compound index `{ ownerId: 1, createdAt: -1 }` on `attempts`
 - **Errors**: `0`
 
