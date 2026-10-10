@@ -59,6 +59,8 @@ Every engineering student learns differently and trips on different concepts. So
 |   Indexes:                                       |
 |   • memories_owner_status_subject_topic_idx      |
 |   • memories_ttl_idx (TTL on expiresAt, 0s)      |
+|   • unique_active_weakness_per_topic (partial)   |
+|   • unique_active_strength_per_topic (partial)   |
 |   • questions_24h_ttl_idx (TTL on createdAt, 24h)|
 |   • topic_stats_unique_owner_topic_idx (unique)  |
 |   • memory_vector_index (Atlas Vector Search)    |
