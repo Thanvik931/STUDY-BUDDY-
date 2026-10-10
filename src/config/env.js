@@ -19,7 +19,17 @@ const envSchema = z.object({
   EMBEDDING_API_KEY: z.string().optional().default(''),
   AI_MODEL: z.string().default('claude-3-5-haiku-20241022'),
   PORT: z.coerce.number().default(3000),
-  DEMO_MODE: z.preprocess((val) => val === 'true' || val === true, z.boolean().default(true))
+  DEMO_MODE: z.preprocess((val) => val === 'true' || val === true, z.boolean().default(true)),
+
+  // Stress Testing & Resilience Flags
+  STRESS_MODE: z.preprocess((val) => val === 'true' || val === true, z.boolean().default(false)),
+  FAIL_EMBEDDING: z.preprocess((val) => val === 'true' || val === true, z.boolean().default(false)),
+  FAIL_AI: z.preprocess((val) => val === 'true' || val === true, z.boolean().default(false)),
+  DELAY_AI_MS: z.coerce.number().default(0),
+  MONGODB_DB: z.string().default('study_buddy_db'),
+  MONGO_MAX_POOL: z.coerce.number().default(20),
+  STRESS_TARGET: z.string().default(''),
+  STRESS_DB_TIER: z.string().default('Atlas M0')
 });
 
 const parsed = envSchema.safeParse(process.env);
