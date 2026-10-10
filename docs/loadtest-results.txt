@@ -1,0 +1,28 @@
+========================================================================
+  STUDY BUDDY: LOAD TEST REPORT (autocannon)
+  Generated: 2026-10-10T12:14:24.886Z
+  Concurrency: 20 connections | Duration: 10 seconds per endpoint
+========================================================================
+
+--- 1. BENCHMARK: GET /api/health ---
+Requests/sec (avg): 1681.5
+Total Requests:     16813
+Latency p50 (ms):   9
+Latency p95 (ms):   undefined
+Latency p99 (ms):   38
+Throughput (bytes): 19251970
+Errors:             0
+
+--- 2. BENCHMARK: GET /api/memories (MongoDB Read) ---
+Requests/sec (avg): 2104.6
+Total Requests:     21043
+Latency p50 (ms):   6
+Latency p95 (ms):   undefined
+Latency p99 (ms):   29
+Throughput (bytes): 24086536
+Errors:             0
+
+========================================================================
+Summary: Server handled high concurrent traffic with stable latency.
+Connection pooling (maxPoolSize: 20) and compound indexes prevent bottlenecks.
+========================================================================
