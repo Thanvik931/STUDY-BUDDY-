@@ -73,7 +73,13 @@ export async function processAnswerMemoryRules({ ownerId, subject, topic, isCorr
     } else {
       // Create brand new weakness memory with stable embedding
       const embeddingText = generateStableEmbeddingText(subject, topic, 'weakness', specificIssue);
-      const embedding = await getEmbedding(embeddingText);
+      let embedding;
+      try {
+        embedding = await getEmbedding(embeddingText);
+      } catch (embErr) {
+        console.warn('Embedding service unavailable when creating memory, using fallback zero vector:', embErr.message);
+        embedding = new Array(env.EMBEDDING_DIMENSIONS).fill(0);
+      }
       const expiresAt = calculateExpiryDate('weakness', false, now);
 
       const newDoc = {
@@ -122,7 +128,13 @@ export async function processAnswerMemoryRules({ ownerId, subject, topic, isCorr
   if (decision.createStrength) {
     if (!activeStrength) {
       const embeddingText = generateStableEmbeddingText(subject, topic, 'strength');
-      const embedding = await getEmbedding(embeddingText);
+      let embedding;
+      try {
+        embedding = await getEmbedding(embeddingText);
+      } catch (embErr) {
+        console.warn('Embedding service unavailable when creating strength memory, using fallback zero vector:', embErr.message);
+        embedding = new Array(env.EMBEDDING_DIMENSIONS).fill(0);
+      }
       const expiresAt = calculateExpiryDate('strength', false, now);
 
       const strengthDoc = {
@@ -202,7 +214,13 @@ export async function correctMemory({ ownerId, memoryId, studentCorrectionText }
 
   // Create new strength memory with source "student_correction"
   const embeddingText = generateStableEmbeddingText(oldMemory.subject, oldMemory.topic, 'strength');
-  const embedding = await getEmbedding(embeddingText);
+  let embedding;
+  try {
+    embedding = await getEmbedding(embeddingText);
+  } catch (embErr) {
+    console.warn('Embedding service unavailable when correcting memory, using fallback zero vector:', embErr.message);
+    embedding = new Array(env.EMBEDDING_DIMENSIONS).fill(0);
+  }
   const expiresAt = calculateExpiryDate('strength', false, now);
 
   const newStrengthDoc = {
