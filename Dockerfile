@@ -3,8 +3,9 @@ FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-# Copy dependency definitions
+# Copy dependency definitions and scripts
 COPY package*.json ./
+COPY scripts/ ./scripts/
 
 # Install dependencies
 RUN npm ci

@@ -15,7 +15,7 @@
     "stress:quick": "node scripts/stresstest.js --quick",
     "stress:soak": "node scripts/stresstest.js --soak",
     "stresstest": "node scripts/stresstest.js",
-    "postinstall": "node scripts/copy-vendor.js",
+    "postinstall": "node --input-type=module -e \"import('./scripts/copy-vendor.js').catch(()=>{})\"",
     "check:env": "node scripts/check-env.js",
     "scan:secrets": "node scripts/scan-secrets.js",
     "check:exposed": "node scripts/check-exposed.js",
