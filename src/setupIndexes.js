@@ -71,6 +71,28 @@ export async function setupAll() {
       { expiresAt: 1 },
       { expireAfterSeconds: 0, name: 'memories_ttl_idx' }
     );
+    // Unique partial index: guarantees at most ONE active weakness memory per topic per student
+    // WHY: Partial indexes with equality filters reliably enforce that race conditions under
+    // concurrent requests cannot insert duplicate active weaknesses for the same topic.
+    await db.collection('memories').createIndex(
+      { ownerId: 1, subject: 1, topic: 1 },
+      {
+        unique: true,
+        partialFilterExpression: { status: 'active', type: 'weakness' },
+        name: 'unique_active_weakness_per_topic'
+      }
+    );
+    // Unique partial index: guarantees at most ONE active strength memory per topic per student
+    // WHY: Guarantees at the database level that a student can never have two active strength memories
+    // for the same topic, even if concurrent correct answers are processed simultaneously.
+    await db.collection('memories').createIndex(
+      { ownerId: 1, subject: 1, topic: 1 },
+      {
+        unique: true,
+        partialFilterExpression: { status: 'active', type: 'strength' },
+        name: 'unique_active_strength_per_topic'
+      }
+    );
 
     // 3. Indexes for 'topic_stats' collection
     console.log('⚡ Creating indexes on "topic_stats"...');
