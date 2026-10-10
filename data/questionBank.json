@@ -1,0 +1,242 @@
+[
+  {
+    "id": "dbms-er-1",
+    "subject": "DBMS",
+    "topic": "er-model-keys",
+    "question": "Which of the following keys can uniquely identify a tuple in a table and can also contain NULL values?",
+    "options": ["Primary Key", "Candidate Key", "Super Key", "Foreign Key"],
+    "correctIndex": 3,
+    "explanation": "A Foreign Key can contain NULL values unless explicitly declared with a NOT NULL constraint, unlike Primary Keys which can never be NULL.",
+    "difficulty": "medium"
+  },
+  {
+    "id": "dbms-er-2",
+    "subject": "DBMS",
+    "topic": "er-model-keys",
+    "question": "A Candidate Key is defined as:",
+    "options": ["Any key that uniquely identifies a row", "A minimal Super Key with no redundant attributes", "A key containing foreign references", "A composite key with at least three columns"],
+    "correctIndex": 1,
+    "explanation": "A Candidate Key is a minimal super key; removing any attribute from it breaks the uniqueness property.",
+    "difficulty": "easy"
+  },
+  {
+    "id": "dbms-sql-1",
+    "subject": "DBMS",
+    "topic": "sql-joins",
+    "question": "In SQL, what is the main difference between an INNER JOIN and a LEFT JOIN?",
+    "options": ["INNER JOIN returns only matching rows from both tables; LEFT JOIN returns all rows from the left table plus matching rows from the right", "LEFT JOIN only returns unmatched rows from the left table", "INNER JOIN returns all rows from the right table", "They produce identical outputs when NULL values exist"],
+    "correctIndex": 0,
+    "explanation": "INNER JOIN includes only records where the join condition evaluates to TRUE for both tables. LEFT JOIN retains all records from the left table, filling non-matching right columns with NULL.",
+    "difficulty": "easy"
+  },
+  {
+    "id": "dbms-sql-2",
+    "subject": "DBMS",
+    "topic": "sql-joins",
+    "question": "When performing a FULL OUTER JOIN in SQL on two tables with non-matching rows, what appears for non-matching columns?",
+    "options": ["Empty string (\"\")", "Zero (0)", "NULL", "An error is thrown"],
+    "correctIndex": 2,
+    "explanation": "FULL OUTER JOIN retains all records from both tables and substitutes NULL for columns where no match was found.",
+    "difficulty": "medium"
+  },
+  {
+    "id": "dbms-norm-1",
+    "subject": "DBMS",
+    "topic": "normalization",
+    "question": "A database table is in Second Normal Form (2NF) if and only if:",
+    "options": ["It is in 1NF and contains no transitive dependencies", "It is in 1NF and contains no partial dependencies on any candidate key", "All attributes are atomic and have primary keys", "Every determinant is a candidate key"],
+    "correctIndex": 1,
+    "explanation": "2NF requires 1NF compliance plus the elimination of partial functional dependencies (where a non-prime attribute depends on only part of a composite candidate key).",
+    "difficulty": "medium"
+  },
+  {
+    "id": "dbms-norm-2",
+    "subject": "DBMS",
+    "topic": "normalization",
+    "question": "What is the primary goal of Boyce-Codd Normal Form (BCNF)?",
+    "options": ["To ensure every determinant is a super key", "To allow multivalued dependencies", "To eliminate 1NF violations", "To remove all foreign keys"],
+    "correctIndex": 0,
+    "explanation": "BCNF is a stricter version of 3NF stating that for every functional dependency X -> Y, X must be a super key.",
+    "difficulty": "hard"
+  },
+  {
+    "id": "dbms-acid-1",
+    "subject": "DBMS",
+    "topic": "transactions-acid",
+    "question": "Which ACID property guarantees that once a transaction commits, its changes survive a sudden server crash?",
+    "options": ["Atomicity", "Consistency", "Isolation", "Durability"],
+    "correctIndex": 3,
+    "explanation": "Durability guarantees that committed transactions are permanently recorded in non-volatile storage (such as write-ahead logs / disk).",
+    "difficulty": "easy"
+  },
+  {
+    "id": "dbms-acid-2",
+    "subject": "DBMS",
+    "topic": "transactions-acid",
+    "question": "In database transaction management, what does the 'Isolation' property prevent?",
+    "options": ["Power failure data loss", "Dirty reads, non-repeatable reads, and phantom reads between concurrent transactions", "Disk sector corruption", "Syntax errors in SQL statements"],
+    "correctIndex": 1,
+    "explanation": "Isolation ensures that concurrently executing transactions do not interfere with each other's intermediate uncommitted states.",
+    "difficulty": "medium"
+  },
+  {
+    "id": "dbms-idx-1",
+    "subject": "DBMS",
+    "topic": "indexing",
+    "question": "Why are B+ Trees predominantly used for relational database indexes instead of standard Binary Search Trees?",
+    "options": ["B+ Trees store data exclusively in memory", "B+ Trees have high fan-out, reducing disk I/O operations and providing fast range scans", "Binary Search Trees cannot store numbers", "B+ Trees eliminate the need for primary keys"],
+    "correctIndex": 1,
+    "explanation": "B+ Trees have a high branching factor (fan-out), keeping tree depth small and minimizing disk block reads. In addition, leaf nodes are linked in a list for fast sequential range queries.",
+    "difficulty": "medium"
+  },
+  {
+    "id": "dbms-idx-2",
+    "subject": "DBMS",
+    "topic": "indexing",
+    "question": "What is a major trade-off when adding multiple indexes to a database table?",
+    "options": ["SELECT queries become slower", "INSERT, UPDATE, and DELETE operations become slower because indexes must be updated", "The database automatically rejects foreign keys", "Transactions can no longer be rolled back"],
+    "correctIndex": 1,
+    "explanation": "While indexes speed up read operations (SELECT), write operations (INSERT/UPDATE/DELETE) incur overhead to maintain each index structure.",
+    "difficulty": "easy"
+  },
+  {
+    "id": "os-sched-1",
+    "subject": "OS",
+    "topic": "process-scheduling",
+    "question": "Which CPU scheduling algorithm allocates a fixed time quantum to each ready process in cyclic order?",
+    "options": ["Shortest Job First (SJF)", "Priority Scheduling", "Round Robin (RR)", "First-Come, First-Served (FCFS)"],
+    "correctIndex": 2,
+    "explanation": "Round Robin scheduling assigns a fixed time quantum per process, preempting the CPU when the quantum expires to ensure fairness and responsiveness.",
+    "difficulty": "easy"
+  },
+  {
+    "id": "os-sched-2",
+    "subject": "OS",
+    "topic": "process-scheduling",
+    "question": "What is the 'Convoy Effect' in operating systems CPU scheduling?",
+    "options": ["When small processes get stuck waiting behind one long CPU-bound process in FCFS scheduling", "When multiple processes deadlock on a shared printer", "When Round Robin quantum is set to infinity", "When cache memory runs out of space"],
+    "correctIndex": 0,
+    "explanation": "The Convoy Effect occurs in FCFS when many short I/O-bound processes are delayed behind a massive CPU-heavy process, drastically increasing average waiting time.",
+    "difficulty": "medium"
+  },
+  {
+    "id": "os-dead-1",
+    "subject": "OS",
+    "topic": "deadlocks",
+    "question": "Which of the following is NOT one of Coffman's four necessary conditions for deadlock?",
+    "options": ["Mutual Exclusion", "Hold and Wait", "Preemption", "Circular Wait"],
+    "correctIndex": 2,
+    "explanation": "The condition is 'NO preemption'. If the OS can preempt (forcibly take away) resources from a process, deadlocks cannot persist.",
+    "difficulty": "medium"
+  },
+  {
+    "id": "os-dead-2",
+    "subject": "OS",
+    "topic": "deadlocks",
+    "question": "The Banker's Algorithm is primarily used in operating systems for:",
+    "options": ["Deadlock detection", "Deadlock avoidance by verifying safe state before resource allocation", "Process termination during paging", "Virtual memory swap calculation"],
+    "correctIndex": 1,
+    "explanation": "Banker's Algorithm tests for safety by simulating the allocation of predetermined maximum possible amounts of all resources, avoiding unsafe states.",
+    "difficulty": "hard"
+  },
+  {
+    "id": "os-page-1",
+    "subject": "OS",
+    "topic": "memory-paging",
+    "question": "In virtual memory paging, what occurs during a 'Page Fault'?",
+    "options": ["The CPU executes an illegal arithmetic instruction", "The requested virtual memory page is not currently mapped into physical RAM frames", "The hard disk has completely failed", "The TLB cache overflows"],
+    "correctIndex": 1,
+    "explanation": "A Page Fault is a hardware interrupt triggered when an application attempts to access a page marked invalid/not present in physical RAM.",
+    "difficulty": "easy"
+  },
+  {
+    "id": "os-page-2",
+    "subject": "OS",
+    "topic": "memory-paging",
+    "question": "What is the primary function of the Translation Lookaside Buffer (TLB)?",
+    "options": ["To store process control blocks", "To act as a high-speed hardware cache for virtual-to-physical address translations", "To replace main memory RAM", "To handle network packet translation"],
+    "correctIndex": 1,
+    "explanation": "The TLB is an associative hardware cache inside the MMU that stores recent page-to-frame translations, avoiding double memory accesses per load/store.",
+    "difficulty": "medium"
+  },
+  {
+    "id": "os-sync-1",
+    "subject": "OS",
+    "topic": "synchronization",
+    "question": "What are the two atomic operations associated with a standard Semaphore?",
+    "options": ["start() and stop()", "wait() (P) and signal() (V)", "lock() and freeze()", "open() and close()"],
+    "correctIndex": 1,
+    "explanation": "Semaphores operate using wait() (historically P / decrements count or blocks) and signal() (historically V / increments count or wakes a waiting process).",
+    "difficulty": "easy"
+  },
+  {
+    "id": "os-sync-2",
+    "subject": "OS",
+    "topic": "synchronization",
+    "question": "How does a Counting Semaphore differ from a Binary Semaphore (Mutex)?",
+    "options": ["A counting semaphore holds an integer value allowing access up to N concurrent resources, whereas a binary semaphore only allows 0 or 1", "Counting semaphores cannot be used in multiprocessing systems", "Binary semaphores allow unlimited threads simultaneously", "Counting semaphores never block processes"],
+    "correctIndex": 0,
+    "explanation": "A counting semaphore initialized with value N allows up to N simultaneous resource acquisitions, whereas binary semaphores restrict access to a single entity.",
+    "difficulty": "medium"
+  },
+  {
+    "id": "os-fs-1",
+    "subject": "OS",
+    "topic": "file-systems",
+    "question": "In Unix/Linux file systems, what critical data does an 'Inode' NOT store?",
+    "options": ["File size", "File owner and permissions", "The actual filename", "Pointers to disk data blocks"],
+    "correctIndex": 2,
+    "explanation": "An Inode stores metadata (size, permissions, timestamps, block pointers) but NOT the filename. Filenames are stored in directory files as mappings from name to Inode number.",
+    "difficulty": "hard"
+  },
+  {
+    "id": "os-fs-2",
+    "subject": "OS",
+    "topic": "file-systems",
+    "question": "Which disk block allocation method suffers most severely from external fragmentation?",
+    "options": ["Contiguous Allocation", "Linked Allocation", "Indexed Allocation", "Extents Allocation"],
+    "correctIndex": 0,
+    "explanation": "Contiguous allocation requires a continuous series of physical disk blocks, which leads to external fragmentation as files are created and deleted over time.",
+    "difficulty": "medium"
+  },
+  {
+    "id": "dbms-er-3",
+    "subject": "DBMS",
+    "topic": "er-model-keys",
+    "question": "If an entity set does not have sufficient attributes to form a primary key on its own, it is termed a:",
+    "options": ["Weak Entity Set", "Strong Entity Set", "Composite Entity", "Recursive Entity"],
+    "correctIndex": 0,
+    "explanation": "A Weak Entity Set depends on the presence of an identifying owner entity set and uses a discriminator (partial key) combined with the owner's primary key.",
+    "difficulty": "easy"
+  },
+  {
+    "id": "dbms-sql-3",
+    "subject": "DBMS",
+    "topic": "sql-joins",
+    "question": "Which SQL JOIN returns the Cartesian product of two tables when no ON or WHERE condition is specified?",
+    "options": ["CROSS JOIN", "NATURAL JOIN", "LEFT JOIN", "SELF JOIN"],
+    "correctIndex": 0,
+    "explanation": "A CROSS JOIN multiplies every row in table A with every row in table B, yielding (rows in A * rows in B) total output records.",
+    "difficulty": "easy"
+  },
+  {
+    "id": "os-sched-3",
+    "subject": "OS",
+    "topic": "process-scheduling",
+    "question": "Which CPU scheduling algorithm is theoretically optimal for minimizing average waiting time, though impossible to implement perfectly without future knowledge?",
+    "options": ["Shortest Job First (SJF)", "First-Come, First-Served (FCFS)", "Round Robin", "Priority Scheduling"],
+    "correctIndex": 0,
+    "explanation": "SJF is provably optimal for minimizing average wait time, but predicting the exact length of the next CPU burst in advance is generally impossible.",
+    "difficulty": "medium"
+  },
+  {
+    "id": "os-sync-3",
+    "subject": "OS",
+    "topic": "synchronization",
+    "question": "What is the primary danger of a 'Spinlock' (busy-waiting lock)?",
+    "options": ["It wastes CPU cycles looping while waiting for the lock to become free", "It causes physical disk corruption", "It permanently uninstalls the OS kernel", "It cannot be used on multi-core systems"],
+    "correctIndex": 0,
+    "explanation": "Spinlocks repeatedly execute a check loop until acquired, wasting CPU clock cycles instead of putting the waiting thread into a sleep state.",
+    "difficulty": "easy"
+  }
+]
