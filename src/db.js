@@ -16,16 +16,21 @@ export async function connectDB() {
   try {
     client = new MongoClient(env.MONGODB_URI, {
       serverSelectionTimeoutMS: 5000, // Do not hang forever if MongoDB is unreachable
-      maxPoolSize: 20 // Maintain up to 20 concurrent connections
+      maxPoolSize: env.MONGO_MAX_POOL // Maintain connection pool size from config (default 20)
     });
 
     await client.connect();
-    // Use the database name specified in the URI or default to 'study_buddy_db'
-    db = client.db();
+
+    // Determine database name: use study_buddy_stress in stress mode to isolate test workloads,
+    // or use MONGODB_DB (defaults to study_buddy_db) in regular operation.
+    const targetDbName = env.STRESS_MODE
+      ? 'study_buddy_stress'
+      : (env.MONGODB_DB || 'study_buddy_db');
+    db = client.db(targetDbName);
     
     // Quick ping command to verify cluster health
     await db.command({ ping: 1 });
-    console.log(`✅ Connected to MongoDB Atlas database: "${db.databaseName}"`);
+    console.log(`✅ Connected to MongoDB Atlas database: "${db.databaseName}" (Pool: ${env.MONGO_MAX_POOL}, Stress mode: ${env.STRESS_MODE})`);
     return db;
   } catch (err) {
     console.error('❌ Failed to connect to MongoDB Atlas:', err.message);
