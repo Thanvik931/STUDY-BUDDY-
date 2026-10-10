@@ -1,0 +1,31 @@
+{
+  "name": "study-buddy",
+  "version": "1.0.0",
+  "description": "Adaptive Study Companion with MongoDB Agentic Memory",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "setup": "node src/setupIndexes.js",
+    "test": "node --test tests/**/*.test.js",
+    "smoke": "node scripts/smoke.js",
+    "evaluate": "node scripts/evaluate.js",
+    "loadtest": "node scripts/loadtest.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.0.0",
+    "mongodb": "^6.13.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "autocannon": "^8.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
