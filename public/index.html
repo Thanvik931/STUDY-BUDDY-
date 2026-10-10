@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Study Buddy — Adaptive Engineering Tutor</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Chart.js from CDN (allowed by Content Security Policy) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header>
+    <div class="logo-area">
+      <span class="logo-icon">🌿</span>
+      <div class="logo-text">
+        <h1>Study Buddy</h1>
+        <p>MongoDB Agentic Memory Engine (Track 1)</p>
+      </div>
+    </div>
+    <div class="student-bar">
+      <span>Student:</span>
+      <span id="current-student-badge" class="badge-student">No student selected</span>
+      <button id="switch-student-btn" class="btn-outline">Switch Student</button>
+    </div>
+  </header>
+
+  <!-- 3 Navigation Tabs -->
+  <nav class="tabs-nav">
+    <button class="tab-btn active" data-tab="quiz">🎯 Quiz & Learning</button>
+    <button class="tab-btn" data-tab="memories">🧠 Cognitive Memory</button>
+    <button class="tab-btn" data-tab="progress">📊 Progress & Trends</button>
+  </nav>
+
+  <!-- Main Content Container -->
+  <div class="container">
+
+    <!-- ================= TAB 1: QUIZ TAB ================= -->
+    <section id="tab-quiz" class="tab-panel active">
+      <!-- Session Opener Banner -->
+      <div id="opener-banner" class="opener-banner">
+        Loading personalized session insights...
+      </div>
+
+      <!-- Subject & Topic Controls -->
+      <div class="card">
+        <div class="controls-grid">
+          <div>
+            <label for="select-subject">Subject</label>
+            <select id="select-subject">
+              <option value="DBMS">Database Management Systems (DBMS)</option>
+              <option value="OS">Operating Systems (OS)</option>
+            </select>
+          </div>
+          <div>
+            <label for="select-topic">Topic</label>
+            <select id="select-topic">
+              <!-- Dynamically populated based on subject -->
+            </select>
+          </div>
+          <div>
+            <button id="fetch-question-btn" class="btn-primary">Get Question</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active Question Card -->
+      <div id="question-card" class="card" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span id="question-difficulty-badge" class="badge badge-preference">MEDIUM</span>
+          <span id="degraded-notice" class="degraded-badge" style="display: none;">Curated Fallback</span>
+        </div>
+
+        <p id="question-text" class="question-text"></p>
+
+        <div id="options-container" class="options-list"></div>
+
+        <button id="submit-answer-btn" class="btn-primary" disabled>Submit Answer</button>
+
+        <!-- Feedback & Explanation Box -->
+        <div id="feedback-box" class="feedback-box" style="display: none;"></div>
+
+        <!-- Why This Question (Transparency & Agentic Memory Explanation) -->
+        <div id="why-box" class="why-box" style="display: none;">
+          <div class="why-header">
+            <span>🧠 Why this question was chosen:</span>
+          </div>
+          <p id="why-text"></p>
+          <div id="why-breakdown" style="margin-top: 0.5rem; font-family: monospace; font-size: 0.78rem;"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= TAB 2: MEMORIES TAB ================= -->
+    <section id="tab-memories" class="tab-panel">
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <div>
+            <h2 class="card-title" style="margin-bottom: 0.2rem;">Student Cognitive Memories</h2>
+            <p style="font-size: 0.8rem; color: var(--text-muted);">
+              Persistent memories stored in MongoDB Atlas. Inspect, correct, or delete any record.
+            </p>
+          </div>
+          <button id="refresh-memories-btn" class="btn-outline" style="color: var(--primary-dark); border-color: var(--primary-dark);">
+            🔄 Refresh
+          </button>
+        </div>
+
+        <div id="memories-container" class="memory-grid">
+          <!-- Dynamically populated via textContent -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= TAB 3: PROGRESS TAB ================= -->
+    <section id="tab-progress" class="tab-panel">
+      <div class="card">
+        <h2 class="card-title">Learning Progression & Accuracy</h2>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+          Computed live by MongoDB Aggregation Pipeline over the attempts collection.
+        </p>
+
+        <div class="stats-row">
+          <div class="stat-box">
+            <div id="stat-accuracy" class="stat-value">0%</div>
+            <div class="stat-label">Overall Accuracy</div>
+          </div>
+          <div class="stat-box">
+            <div id="stat-attempts" class="stat-value">0</div>
+            <div class="stat-label">Questions Attempted</div>
+          </div>
+          <div class="stat-box">
+            <div id="stat-correct" class="stat-value">0</div>
+            <div class="stat-label">Correct Answers</div>
+          </div>
+        </div>
+
+        <div style="height: 340px; position: relative;">
+          <canvas id="progress-chart"></canvas>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Student Switcher / Creator Modal -->
+  <div id="student-modal" class="modal-overlay">
+    <div class="modal">
+      <h2>Select or Create Student</h2>
+      <div style="margin-bottom: 1.25rem;">
+        <label for="existing-student-select">Choose Existing Profile</label>
+        <select id="existing-student-select">
+          <option value="">-- Select Student --</option>
+        </select>
+      </div>
+
+      <div style="text-align: center; margin: 0.75rem 0; font-size: 0.8rem; color: var(--text-muted);">— OR —</div>
+
+      <div>
+        <label for="new-student-name">Create New Profile</label>
+        <input type="text" id="new-student-name" placeholder="Enter student name (e.g. Rahul)">
+      </div>
+
+      <div class="modal-actions">
+        <button id="confirm-student-btn" class="btn-primary">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Memory Correction Modal -->
+  <div id="correct-modal" class="modal-overlay">
+    <div class="modal">
+      <h2>Correct Cognitive Memory</h2>
+      <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem;">
+        Update the AI's understanding. This marks the previous memory as superseded and records a new strength memory.
+      </p>
+      <div>
+        <label for="correct-content-input">New Understanding Note</label>
+        <input type="text" id="correct-content-input" placeholder="e.g. Student now understands LEFT JOIN semantics" maxlength="300">
+      </div>
+      <div class="modal-actions">
+        <button id="cancel-correct-btn" class="btn-outline" style="color: var(--primary-dark); border-color: var(--primary-dark);">Cancel</button>
+        <button id="save-correct-btn" class="btn-primary">Save Correction</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Application Logic (Safe Vanilla JS using textContent) -->
+  <script type="module" src="app.js"></script>
+</body>
+</html>
