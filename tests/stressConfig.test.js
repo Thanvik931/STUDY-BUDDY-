@@ -4,23 +4,31 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { generateQuestionWithAI } from '../src/services/aiService.js';
-import { env } from '../src/config/env.js';
+import { env, setStressFlags } from '../src/config/env.js';
 
 test('14. AI generation falls back gracefully with degraded=true when Anthropic API fails or is unconfigured', async () => {
-  // Even if AI service fails or is simulated down, the app must NEVER crash and must return a degraded question
-  const result = await generateQuestionWithAI({
-    subject: 'DBMS',
-    topic: 'sql-joins',
-    difficulty: 'easy',
-    memories: []
-  });
+  if (env.STRESS_MODE) {
+    setStressFlags({ failAi: true });
+  }
+  try {
+    const result = await generateQuestionWithAI({
+      subject: 'DBMS',
+      topic: 'sql-joins',
+      difficulty: 'easy',
+      memories: []
+    });
 
-  assert.ok(result.question, 'Fallback question must exist');
-  assert.equal(Array.isArray(result.options), true, 'Options must be an array');
-  assert.equal(result.options.length, 4, 'Must have exactly 4 options');
-  assert.equal(typeof result.correctIndex, 'number', 'correctIndex must be a number');
-  assert.ok(result.explanation, 'Explanation must exist');
-  assert.equal(result.degraded, true, 'Result must be marked degraded when falling back');
+    assert.ok(result.question, 'Fallback question must exist');
+    assert.equal(Array.isArray(result.options), true, 'Options must be an array');
+    assert.equal(result.options.length, 4, 'Must have exactly 4 options');
+    assert.equal(typeof result.correctIndex, 'number', 'correctIndex must be a number');
+    assert.ok(result.explanation, 'Explanation must exist');
+    assert.equal(result.degraded, true, 'Result must be marked degraded when falling back');
+  } finally {
+    if (env.STRESS_MODE) {
+      setStressFlags({ failAi: false });
+    }
+  }
 });
 
 test('15. Stress configuration resolves isolated database name and default pool size', () => {
