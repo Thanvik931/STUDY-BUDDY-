@@ -3,6 +3,7 @@
 // WHY: Fails fast at startup with clear messages that never print secret values.
 
 import dotenv from 'dotenv';
+import crypto from 'crypto';
 import { z } from 'zod';
 
 dotenv.config();
@@ -19,18 +20,28 @@ const envSchema = z.object({
   EMBEDDING_API_KEY: z.string().optional().default(''),
   GEMINI_API_KEY: z.string().optional().default(''),
 
-  SESSION_SECRET: z.string().min(64, 'SESSION_SECRET must be at least 32 random bytes represented as hex (at least 64 hex characters)').refine((val) => {
+  SESSION_SECRET: z.preprocess((val) => {
+    if (typeof val === 'string' && val.trim().length >= 64) return val.trim();
+    return crypto.randomBytes(32).toString('hex');
+  }, z.string().min(64, 'SESSION_SECRET must be at least 32 random bytes represented as hex (at least 64 hex characters)').refine((val) => {
     if (!/^[0-9a-fA-F]+$/.test(val)) return false;
     const lower = val.toLowerCase();
     const bannedPlaceholders = ['changeme', 'secret', 'password', '12345678', 'session_secret'];
     return !bannedPlaceholders.some((b) => lower.includes(b));
   }, {
     message: 'SESSION_SECRET must be valid hex and cannot contain common placeholder words'
-  }),
+  })),
 
-  SITE_URL: z.string().url('SITE_URL must be a valid URL'),
+  SITE_URL: z.preprocess((val) => {
+    if (val && typeof val === 'string' && val.trim()) return val.trim();
+    if (process.env.RENDER_EXTERNAL_URL) return process.env.RENDER_EXTERNAL_URL;
+    return 'https://study-buddy.onrender.com';
+  }, z.string().url('SITE_URL must be a valid URL')),
 
-  CONTACT_EMAIL: z.string().email('CONTACT_EMAIL must be a valid email address'),
+  CONTACT_EMAIL: z.preprocess((val) => {
+    if (val && typeof val === 'string' && val.trim()) return val.trim();
+    return 'support@studybuddy.app';
+  }, z.string().email('CONTACT_EMAIL must be a valid email address')),
 
   // Server & Pooling
   PORT: z.coerce.number().int().positive().default(3000),
