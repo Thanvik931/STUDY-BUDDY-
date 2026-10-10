@@ -200,7 +200,7 @@ router.post('/auth/quick-login', async (req, res, next) => {
         _id: new ObjectId(),
         username: demoUsername,
         usernameLower,
-        displayName: 'Ravi Kumar (Student)',
+        displayName: 'Ravi Kumar',
         passwordHash,
         role: 'student',
         acceptedTermsVersion: '1.0',
@@ -212,7 +212,7 @@ router.post('/auth/quick-login', async (req, res, next) => {
     } else {
       await db.collection('users').updateOne(
         { _id: user._id },
-        { $set: { lastLoginAt: now } }
+        { $set: { lastLoginAt: now, displayName: 'Ravi Kumar' } }
       );
     }
 

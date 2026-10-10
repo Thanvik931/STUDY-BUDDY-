@@ -375,7 +375,9 @@ function setUser(user) {
   viewLanding.style.display = 'none';
   viewApp.style.display = 'flex';
 
-  studentBadge.textContent = `${user.displayName || user.username} (${user.role || 'Student'})`;
+  if (studentBadge) {
+    studentBadge.textContent = user.displayName || user.username;
+  }
   if (sidebarStudentName) {
     sidebarStudentName.textContent = user.displayName || user.username;
   }
