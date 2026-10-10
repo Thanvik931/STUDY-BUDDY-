@@ -144,5 +144,53 @@ export const api = {
   // Progress (Chart.js)
   getProgress() {
     return this.request('/api/progress');
+  },
+
+  // AI Tutor Features
+  tutorChat(message, mode = 'socratic', currentTopic = null) {
+    return this.request('/api/tutor/chat', {
+      method: 'POST',
+      body: JSON.stringify({ message, mode, currentTopic })
+    });
+  },
+
+  getTutorChatHistory() {
+    return this.request('/api/tutor/chat-history');
+  },
+
+  getStudyPlan() {
+    return this.request('/api/tutor/study-plan', {
+      method: 'POST'
+    });
+  },
+
+  getFlashcards(subject = null) {
+    const url = subject ? `/api/tutor/flashcards?subject=${subject}` : '/api/tutor/flashcards';
+    return this.request(url);
+  },
+
+  rateFlashcard(flashcardId, rating, topic, subject) {
+    return this.request('/api/tutor/flashcard-rate', {
+      method: 'POST',
+      body: JSON.stringify({ flashcardId, rating, topic, subject })
+    });
+  },
+
+  getCheatSheet(subject) {
+    return this.request(`/api/tutor/cheatsheet/${subject}`);
+  },
+
+  startMockExam() {
+    return this.request('/api/tutor/mock-exam/start', {
+      method: 'POST'
+    });
+  },
+
+  submitMockExam(submissions, timeSpentSeconds) {
+    return this.request('/api/tutor/mock-exam/submit', {
+      method: 'POST',
+      body: JSON.stringify({ submissions, timeSpentSeconds })
+    });
   }
 };
+

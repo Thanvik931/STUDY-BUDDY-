@@ -32,11 +32,12 @@
         <span class="hero-pill">⚡ MongoDB Atlas Vector Search</span>
         <span class="hero-pill">🧠 Agentic Memory Evolution</span>
         <span class="hero-pill">🤖 Gemini AI Concept Teaching</span>
+        <span class="hero-pill">💬 Socratic 1-on-1 AI Tutor</span>
         <span class="hero-pill">🔒 Strict Enterprise Security</span>
       </div>
       <h1>Adaptive Engineering AI Companion</h1>
       <p>
-        Master Database Management Systems and Operating Systems with personalized 10-question adaptive quizzes, live cognitive memory in MongoDB Atlas, and in-depth concept lessons powered by Gemini AI.
+        Master Database Management Systems and Operating Systems with personalized 1-on-1 Socratic doubt solving, 10-question adaptive quizzes, live cognitive memory in MongoDB Atlas, active recall flashcards, and timed mock exams.
       </p>
     </div>
 
@@ -107,6 +108,11 @@
     <!-- Feature Architecture Highlights Grid -->
     <div class="landing-features-grid">
       <div class="feature-box">
+        <div class="feature-icon">💬</div>
+        <h3>1-on-1 Socratic AI Tutor</h3>
+        <p>Real-time conversational tutor grounded in your live cognitive memory. Ask doubts with Socratic hints, ELI5 analogies, or deep exam proofs.</p>
+      </div>
+      <div class="feature-box">
         <div class="feature-icon">🎯</div>
         <h3>10-Question Adaptive Quiz</h3>
         <p>Generates targeted 10-question quiz sets with difficulty calibrated to your cognitive strengths and weaknesses. Withheld server answers prevent cheating.</p>
@@ -114,17 +120,12 @@
       <div class="feature-box">
         <div class="feature-icon">📖</div>
         <h3>Gemini Concept Teaching</h3>
-        <p>Ingests your exact pass/fail percentages from MongoDB to explain complex concepts in depth with analogies, invariants, common traps, and code.</p>
+        <p>Ingests your exact pass/fail percentages from MongoDB to explain complex concepts in depth with audio voice reading, analogies, and code.</p>
       </div>
       <div class="feature-box">
-        <div class="feature-icon">🧠</div>
-        <h3>Cognitive Memory Lifecycle</h3>
-        <p>Real-time MongoDB Atlas memory documents track weaknesses, record streak upgrades, supersede outdated misconceptions, and support full GDPR data sovereignty.</p>
-      </div>
-      <div class="feature-box">
-        <div class="feature-icon">📊</div>
-        <h3>Multi-Chart Analytics</h3>
-        <p>Visualize your engineering mastery with radar topic breakdown, pass-vs-fail subject comparisons, cognitive memory distribution, and timeline curves.</p>
+        <div class="feature-icon">🗂️</div>
+        <h3>Active Recall Flashcards</h3>
+        <p>3D flip flashcards with spaced repetition algorithms. Rating your recall directly updates weakness and strength documents in MongoDB.</p>
       </div>
     </div>
   </div>
@@ -138,7 +139,7 @@
         <span class="logo-icon">🌿</span>
         <div class="logo-text">
           <h1>Study Buddy</h1>
-          <p>Adaptive Engineering Companion &bull; MongoDB Cognitive Memory Engine</p>
+          <p>Adaptive Engineering AI Companion &bull; MongoDB Cognitive Memory Engine</p>
         </div>
       </div>
       <div class="student-bar">
@@ -150,19 +151,72 @@
       </div>
     </header>
 
-    <!-- 4 Navigation Tabs -->
-    <nav class="tabs-nav">
-      <button class="tab-btn active" data-tab="quiz">🎯 Adaptive Quiz (10 Questions)</button>
-      <button class="tab-btn" data-tab="lessons">📖 Teach Concepts & Gemini Lessons</button>
+    <!-- Navigation Tabs -->
+    <nav class="tabs-nav" style="flex-wrap: wrap; overflow-x: auto;">
+      <button class="tab-btn active" data-tab="tutor">💬 1-on-1 AI Tutor</button>
+      <button class="tab-btn" data-tab="quiz">🎯 Adaptive Quiz (10 Qs)</button>
+      <button class="tab-btn" data-tab="lessons">📖 Concept Lessons</button>
+      <button class="tab-btn" data-tab="flashcards">🗂️ Active Recall Flashcards</button>
+      <button class="tab-btn" data-tab="mockexam">⏱️ Timed Mock Exam</button>
+      <button class="tab-btn" data-tab="studyplan">📅 AI Study Planner</button>
+      <button class="tab-btn" data-tab="cheatsheet">📄 Revision Cheat Sheets</button>
       <button class="tab-btn" data-tab="memories">🧠 Cognitive Memory</button>
-      <button class="tab-btn" data-tab="progress">📊 Progress & Visual Analytics</button>
+      <button class="tab-btn" data-tab="progress">📊 Progress & Analytics</button>
     </nav>
 
     <!-- Main Content Container -->
     <div class="container">
 
+      <!-- ================= TAB 0: 1-ON-1 AI TUTOR CHAT ================= -->
+      <section id="tab-tutor" class="tab-panel active">
+        <div class="card" style="margin-bottom: 1rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+            <div>
+              <h2 class="card-title" style="margin-bottom: 0.2rem;">1-on-1 Socratic AI Tutor</h2>
+              <p style="font-size: 0.82rem; color: var(--text-muted);">
+                Ask any question, request hints, or debug tricky concepts. The tutor adapts using your MongoDB cognitive memories.
+              </p>
+            </div>
+            <button id="tutor-read-aloud-btn" class="btn-speech">
+              🔊 Read Last Reply
+            </button>
+          </div>
+
+          <div style="margin-top: 0.75rem;">
+            <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-right: 0.5rem;">Tutor Mode:</span>
+            <span class="tutor-mode-btn active" data-mode="socratic">🎓 Socratic Mentor</span>
+            <span class="tutor-mode-btn" data-mode="eli5">💡 Explain Like I'm 5</span>
+            <span class="tutor-mode-btn" data-mode="deepdive">🔬 Exam Deep Dive & Proofs</span>
+            <span class="tutor-mode-btn" data-mode="debug">💻 Code & SQL Debugger</span>
+          </div>
+
+          <div style="margin-top: 0.75rem; display: flex; flex-wrap: wrap; gap: 0.5rem;">
+            <span style="font-size: 0.78rem; font-weight: 600; color: var(--text-muted); align-self: center;">Quick Prompts:</span>
+            <button class="lesson-chip quick-prompt-btn">Why does B+ Tree have higher fanout than B-Tree?</button>
+            <button class="lesson-chip quick-prompt-btn">How does Banker's Algorithm check safe state?</button>
+            <button class="lesson-chip quick-prompt-btn">Why does 2PL ensure conflict serializability?</button>
+            <button class="lesson-chip quick-prompt-btn">Explain TLB miss vs Page Fault</button>
+          </div>
+        </div>
+
+        <!-- Chat Container -->
+        <div class="tutor-chat-container">
+          <div id="tutor-chat-messages" class="tutor-chat-messages">
+            <div class="chat-bubble tutor">
+              Hello! I am your personal AI Engineering Tutor. 🎓
+              I am connected to your live MongoDB Cognitive Memory profile and know exactly which concepts you have mastered and where you recently stumbled.
+              What topic or tricky exam problem would you like to explore today?
+            </div>
+          </div>
+          <form id="tutor-chat-form" class="tutor-chat-input-row">
+            <input type="text" id="tutor-chat-input" class="tutor-chat-input" placeholder="Type your doubt or question here (e.g., 'Why does FCFS suffer from convoy effect?')..." required>
+            <button type="submit" id="tutor-chat-submit" class="btn-primary" style="padding: 0.65rem 1.25rem;">Send ➔</button>
+          </form>
+        </div>
+      </section>
+
       <!-- ================= TAB 1: QUIZ TAB ================= -->
-      <section id="tab-quiz" class="tab-panel active">
+      <section id="tab-quiz" class="tab-panel">
         <!-- Session Opener Banner -->
         <div id="opener-banner" class="opener-banner">
           Loading personalized session insights from MongoDB Cognitive Memory...
@@ -322,7 +376,8 @@
                 <span id="lesson-stat-rate" class="stat-pill stat-pill-accuracy">0% Accuracy</span>
               </div>
             </div>
-            <div>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <button id="lesson-voice-btn" class="btn-speech">🔊 Listen to Tutor</button>
               <span id="lesson-ai-badge" class="ai-engine-pill">🤖 Gemini AI Engine</span>
             </div>
           </div>
@@ -371,7 +426,214 @@
         </div>
       </section>
 
-      <!-- ================= TAB 3: MEMORIES TAB ================= -->
+      <!-- ================= TAB 3: ACTIVE RECALL FLASHCARDS ================= -->
+      <section id="tab-flashcards" class="tab-panel">
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;">
+            <div>
+              <h2 class="card-title" style="margin-bottom: 0.2rem;">Spaced Repetition & Active Recall Flashcards</h2>
+              <p style="font-size: 0.82rem; color: var(--text-muted);">
+                Test your mental recall. Rating yourself updates your cognitive memory documents in MongoDB.
+              </p>
+            </div>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <select id="flashcard-subject-select" style="padding: 0.35rem 0.65rem; border-radius: 6px; border: 1px solid var(--border-color);">
+                <option value="ALL">All Subjects</option>
+                <option value="DBMS">DBMS</option>
+                <option value="OS">OS</option>
+              </select>
+              <span id="flashcard-counter-badge" class="hero-pill">Card 1 of 10</span>
+            </div>
+          </div>
+
+          <!-- 3D Flip Card Container -->
+          <div class="flashcard-wrapper">
+            <div id="flashcard-element" class="flashcard-card">
+              <div style="display: flex; justify-content: space-between;">
+                <span id="fc-side-label" class="flashcard-hint-tag">FRONT (QUESTION)</span>
+                <span id="fc-topic-label" class="stat-pill stat-pill-accuracy">Topic</span>
+              </div>
+              <p id="fc-main-text" class="flashcard-text">Loading flashcard...</p>
+              <div id="fc-extra-box" style="display: none; background: #F8FAFC; padding: 0.75rem; border-radius: 6px; border: 1px dashed var(--border-color); margin-bottom: 0.5rem;">
+                <div style="font-size: 0.78rem; font-weight: 700; color: var(--primary-dark);">Key Theorem / Formula:</div>
+                <code id="fc-formula-text" style="font-size: 0.85rem; color: #1E293B;"></code>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span class="flashcard-footer-tip">💡 Click card to flip / reveal back</span>
+                <button id="fc-voice-btn" class="btn-speech">🔊 Speak</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Rating Buttons (Spaced Repetition) -->
+          <div id="fc-rating-container" class="flashcard-rating-bar" style="display: none;">
+            <button class="rate-btn rate-btn-again" data-rating="again">
+              <span>🔴 Again</span>
+              <small>&lt; 1 min</small>
+            </button>
+            <button class="rate-btn rate-btn-hard" data-rating="hard">
+              <span>🟠 Hard</span>
+              <small>1 day</small>
+            </button>
+            <button class="rate-btn rate-btn-good" data-rating="good">
+              <span>🔵 Good</span>
+              <small>3 days</small>
+            </button>
+            <button class="rate-btn rate-btn-easy" data-rating="easy">
+              <span>🟢 Easy</span>
+              <small>7 days</small>
+            </button>
+          </div>
+
+          <div style="display: flex; justify-content: center; gap: 1rem; margin-top: 1.5rem;">
+            <button id="fc-prev-btn" class="btn-outline" style="color: var(--primary-dark); border-color: var(--primary-dark);">◀ Previous</button>
+            <button id="fc-next-btn" class="btn-primary">Next Card ▶</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= TAB 4: TIMED MOCK EXAM ================= -->
+      <section id="tab-mockexam" class="tab-panel">
+        <!-- Pre-exam Card -->
+        <div id="mockexam-intro-card" class="card" style="text-align: center; padding: 2.5rem 1.5rem;">
+          <h2 style="font-size: 1.8rem; color: var(--primary-dark); margin-bottom: 0.5rem;">⏱️ Timed Mock Exam Simulator</h2>
+          <p style="font-size: 1rem; color: var(--text-muted); max-width: 650px; margin: 0 auto 1.5rem auto;">
+            Simulates actual engineering university exams and competitive evaluations. 15 questions mixed across DBMS and Operating Systems with a strict 15-minute countdown timer.
+          </p>
+          <div style="display: flex; justify-content: center; gap: 1.5rem; margin-bottom: 2rem; flex-wrap: wrap;">
+            <span class="hero-pill">📝 15 Multi-Choice Questions</span>
+            <span class="hero-pill">⏳ 15 Minutes Countdown</span>
+            <span class="hero-pill">🎓 Letter Grade & Report Card</span>
+          </div>
+          <button id="start-mockexam-btn" class="btn-primary" style="font-size: 1.1rem; padding: 0.85rem 2rem; font-weight: 700;">
+            🚀 Start 15-Minute Mock Exam
+          </button>
+        </div>
+
+        <!-- Active Exam Card -->
+        <div id="mockexam-active-card" class="card" style="display: none;">
+          <div class="exam-timer-banner">
+            <span>⏱️ University Mock Examination</span>
+            <div>Time Remaining: <span id="mockexam-timer" class="exam-timer-display">15:00</span></div>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+            <span id="exam-q-indicator" style="font-weight: 700; color: var(--primary-dark);">Question 1 of 15</span>
+            <span id="exam-topic-badge" class="badge badge-preference">Topic</span>
+          </div>
+
+          <p id="exam-q-text" class="question-text" style="font-size: 1.1rem;"></p>
+          <div id="exam-options-container" class="options-list"></div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem;">
+            <button id="exam-prev-btn" class="btn-outline" style="color: var(--primary-dark); border-color: var(--primary-dark);" disabled>◀ Previous</button>
+            <div style="display: flex; gap: 0.75rem;">
+              <button id="exam-next-btn" class="btn-primary">Next Question ➔</button>
+              <button id="exam-submit-btn" class="btn-primary" style="background-color: #B45309; font-weight: 700;">Submit Exam Final</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Post-exam Report Card -->
+        <div id="mockexam-report-card" class="card" style="display: none; text-align: center; padding: 2rem 1.5rem;">
+          <div id="report-grade-circle" class="grade-badge-circle grade-A">A</div>
+          <h2 style="font-size: 1.6rem; color: var(--primary-dark); margin-bottom: 0.25rem;">Exam Completed!</h2>
+          <div id="report-score-text" style="font-size: 1.3rem; font-weight: 700; color: #1E293B; margin-bottom: 1rem;">Score: 13 / 15 (87%)</div>
+          
+          <div class="diagnosis-callout" id="report-advice-box" style="text-align: left; max-width: 750px; margin: 0 auto 1.5rem auto;">
+            <strong>AI Tutor Diagnostic Advice:</strong>
+            <p id="report-advice-text" style="margin-top: 0.35rem;"></p>
+          </div>
+
+          <div id="report-review-list" style="text-align: left; max-width: 800px; margin: 0 auto 1.5rem auto;">
+            <!-- Render individual question reviews -->
+          </div>
+
+          <button id="retake-mockexam-btn" class="btn-primary">🔄 Retake Another Mock Exam</button>
+        </div>
+      </section>
+
+      <!-- ================= TAB 5: AI STUDY PLANNER ================= -->
+      <section id="tab-studyplan" class="tab-panel">
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+            <div>
+              <h2 class="card-title" style="margin-bottom: 0.2rem;">Personalized AI Study Plan & Readiness Roadmap</h2>
+              <p style="font-size: 0.82rem; color: var(--text-muted);">
+                Calculated by analyzing all attempts and active cognitive memories in MongoDB Atlas.
+              </p>
+            </div>
+            <button id="refresh-studyplan-btn" class="btn-outline" style="color: var(--primary-dark); border-color: var(--primary-dark);">
+              🔄 Refresh Plan
+            </button>
+          </div>
+
+          <!-- Readiness Meter Gauge -->
+          <div class="readiness-meter-box">
+            <div style="text-align: center;">
+              <div id="sp-readiness-score" class="readiness-score-number">75%</div>
+              <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">Overall Exam Readiness</div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+              <span id="sp-coverage-pill" class="stat-pill stat-pill-accuracy">Syllabus Coverage: 80%</span>
+              <span id="sp-accuracy-pill" class="stat-pill stat-pill-pass">Average Accuracy: 72%</span>
+            </div>
+          </div>
+
+          <!-- Daily Action Checklist -->
+          <div style="margin-bottom: 1.5rem;">
+            <h3 style="font-size: 1.05rem; color: var(--primary-dark); margin-bottom: 0.5rem;">📋 AI Tutor's Daily Action Checklist</h3>
+            <div id="sp-checklist-container" style="display: flex; flex-direction: column; gap: 0.4rem;">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- Priority Lists (Critical, In Progress, Mastered) -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
+            <div>
+              <h4 style="font-size: 0.95rem; color: #991B1B; margin-bottom: 0.5rem;">🚨 Critical Priority (Review Today)</h4>
+              <div id="sp-critical-container"></div>
+            </div>
+            <div>
+              <h4 style="font-size: 0.95rem; color: #92400E; margin-bottom: 0.5rem;">⚠️ Reinforcement (In Progress)</h4>
+              <div id="sp-reinforce-container"></div>
+            </div>
+            <div>
+              <h4 style="font-size: 0.95rem; color: #166534; margin-bottom: 0.5rem;">🏆 Mastered (Strengths)</h4>
+              <div id="sp-mastered-container"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= TAB 6: REVISION CHEAT SHEETS ================= -->
+      <section id="tab-cheatsheet" class="tab-panel">
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div>
+              <h2 class="card-title" style="margin-bottom: 0.2rem;">High-Yield Engineering Cheat Sheets</h2>
+              <p style="font-size: 0.82rem; color: var(--text-muted);">
+                Concise formulas, normal form progressions, scheduling bounds, and ACID rules for rapid exam recall.
+              </p>
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+              <button id="cs-subj-dbms-btn" class="btn-primary" style="padding: 0.35rem 0.85rem; font-size: 0.85rem;">DBMS Sheet</button>
+              <button id="cs-subj-os-btn" class="btn-outline" style="color: var(--primary-dark); border-color: var(--primary-dark); padding: 0.35rem 0.85rem; font-size: 0.85rem;">OS Sheet</button>
+              <button onclick="window.print()" class="btn-outline" style="border-color: #64748B; color: #334155;">🖨️ Print / PDF</button>
+            </div>
+          </div>
+
+          <div id="cheatsheet-content">
+            <h3 id="cs-title" style="color: var(--primary-dark); font-size: 1.2rem; margin-bottom: 0.25rem;">DBMS Cheat Sheet</h3>
+            <p id="cs-summary" style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1.25rem;"></p>
+            <div id="cs-sections-grid" class="cheat-sheet-grid">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= TAB 7: MEMORIES TAB ================= -->
       <section id="tab-memories" class="tab-panel">
         <div class="card">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
@@ -392,7 +654,7 @@
         </div>
       </section>
 
-      <!-- ================= TAB 4: PROGRESS & ANALYTICS TAB ================= -->
+      <!-- ================= TAB 8: PROGRESS & ANALYTICS TAB ================= -->
       <section id="tab-progress" class="tab-panel">
         <div class="card">
           <h2 class="card-title">Cognitive Progress & Visual Analytics</h2>

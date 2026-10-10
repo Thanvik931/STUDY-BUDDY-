@@ -1,6 +1,6 @@
 # 🛡️ Study Buddy — Comprehensive Launch Security & Readiness Audit
-**Audit Date:** `2026-10-10T15:38:30.225Z`  
-**Git Commit:** `0a075da`  
+**Audit Date:** `2026-10-10T15:45:10.052Z`  
+**Git Commit:** `c9cc88f`  
 **Environment:** `Node.js v22.19.0` on Windows
 
 ---
@@ -57,7 +57,7 @@ This document provides an automated assessment of the Study Buddy platform again
 • Working Tree Scan: 0 suspicious pattern(s) found.
   [PASS] Clean. No plaintext credentials found in working tree.
 
-• Git History Scan: 7 suspicious pattern(s) found.
+• Git History Scan: 5 suspicious pattern(s) found.
   - [FLAG] Commit history contains: MongoDB Embedded Credential -> mongod****et
   - [FLAG] Commit history contains: MongoDB Embedded Credential -> mongod****et
   - [FLAG] Commit history contains: MongoDB Embedded Credential -> mongod****et
@@ -154,13 +154,13 @@ TAP version 13
     # Subtest: 1. Verified user lookup never leaks passwordHash
     ok 1 - 1. Verified user lookup never leaks passwordHash
       ---
-      duration_ms: 45.0137
+      duration_ms: 79.3095
       type: 'test'
       ...
     # Subtest: 2. Account data export includes all student data and omits embeddings/tokenHashes
     ok 2 - 2. Account data export includes all student data and omits embeddings/tokenHashes
       ---
-      duration_ms: 434.5788
+      duration_ms: 139.0194
       type: 'test'
       ...
     # Subtest: 3. Account deletion with incorrect password fails and leaves data intact

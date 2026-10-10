@@ -1,0 +1,46 @@
+{
+  "DBMS": {
+    "title": "Database Management Systems (DBMS) Master Cheat Sheet",
+    "summary": "Core theorems, normal forms, transaction schedules, and indexing invariants for university exams and interviews.",
+    "sections": [
+      {
+        "heading": "Relational Algebra & SQL Operations",
+        "content": "• Selection (σ): Filters rows based on condition.\n• Projection (π): Selects specific columns and eliminates duplicates in pure relational algebra.\n• Cartesian Product (×): Combines every row of R with every row of S.\n• Theta Join (⋈_θ): Selection over Cartesian product (σ_θ(R × S)).\n• Natural Join (⋈): Equijoin over all common attribute names.\n• Semi-Join (⋉): Returns tuples from R that participate in join with S."
+      },
+      {
+        "heading": "Normalization Progression Checklist",
+        "content": "• 1NF: Atomic values only. No repeating groups or multi-valued attributes.\n• 2NF: In 1NF + No Partial Dependency (every non-prime attribute is fully functionally dependent on the whole candidate key).\n• 3NF: In 2NF + No Transitive Dependency (for every X → Y, either X is a superkey OR Y is a prime attribute).\n• BCNF: In 3NF + Strict: for EVERY non-trivial X → Y, X MUST be a superkey (no prime attribute exception)."
+      },
+      {
+        "heading": "ACID Properties & Recovery Invariants",
+        "content": "• Atomicity: All or nothing execution (enforced via Undo log / Write-Ahead Logging - WAL).\n• Consistency: Database transitions from one valid state to another satisfying all integrity constraints.\n• Isolation: Concurrency execution is equivalent to some serial schedule (enforced via 2PL or MVCC).\n• Durability: Committed updates survive system crashes (enforced via Redo log and fsync to disk)."
+      },
+      {
+        "heading": "B+ Tree Disk Indexing Formulas",
+        "content": "• Order m: Each internal node has at most m children and at least ⌈m/2⌉ children (except root).\n• Maximum keys in internal node: m - 1.\n• Minimum keys in internal node: ⌈m/2⌉ - 1.\n• Max Records in Leaf Node: (Block_Size - Header) / (Record_Pointer_Size + Key_Size).\n• Fanout = Number of pointers per node. High fanout minimizes disk I/O seeks to 3-4 blocks."
+      }
+    ]
+  },
+  "OS": {
+    "title": "Operating Systems (OS) Master Cheat Sheet",
+    "summary": "Process state transitions, scheduling algorithms, deadlock theorems, virtual memory, and file systems.",
+    "sections": [
+      {
+        "heading": "Process States & Scheduling Algorithms",
+        "content": "• States: New → Ready (via Long-Term Scheduler) → Running (via Dispatcher) → Terminated (or Waiting via I/O wait).\n• Turnaround Time = Completion Time - Arrival Time.\n• Waiting Time = Turnaround Time - Burst Time.\n• Response Time = Time of first CPU allocation - Arrival Time.\n• FCFS: Non-preemptive, suffers Convoy Effect.\n• SJF: Optimal average waiting time, provable mathematically; suffers starvation for long jobs.\n• SRTF: Preemptive version of SJF.\n• Round Robin: Time quantum q. Fair, starvation-free, bounds response time."
+      },
+      {
+        "heading": "Deadlock Characterization & Banker's Algorithm",
+        "content": "• Coffman 4 Conditions: Mutual Exclusion, Hold & Wait, No Preemption, Circular Wait.\n• Prevention: Spooling (Mutual Excl), Request all at start (Hold & Wait), Preempt (No Preempt), Total ordering of resources (Circular Wait).\n• Banker's Safety Algorithm:\n  1. Work = Available, Finish[i] = false for all i.\n  2. Find i such that Finish[i] == false and Need[i] <= Work.\n  3. Work = Work + Allocation[i], Finish[i] = true. Repeat until all finish or none can."
+      },
+      {
+        "heading": "Virtual Memory & Paging Hierarchy",
+        "content": "• Page Size = Frame Size = 2^d bytes (d bits for offset).\n• Virtual Address = Page Number (p) + Offset (d).\n• Multi-Level Paging: Page directory points to second-level page tables to avoid contiguous allocation of empty tables.\n• Inverted Page Table: One entry per physical frame (saves RAM, indexed via hash table on PID + VPN).\n• Page Replacement: FIFO (suffers Belady's Anomaly), LRU (optimal stack algorithm), Optimal (OPT / MIN - theoretical bound)."
+      },
+      {
+        "heading": "Process Synchronization & Classic Concurrency",
+        "content": "• Critical Section Requirements: Mutual Exclusion, Progress, Bounded Waiting.\n• Peterson's Solution: 2-process software solution using flag[2] array and turn variable.\n• TestAndSet / CompareAndSwap: Hardware atomic instructions.\n• Semaphore: S.wait() decrements, S.signal() increments atomically.\n• Classic Problems: Producer-Consumer (Bounded Buffer), Readers-Writers (Reader preference vs Writer preference), Dining Philosophers (Resource hierarchy)."
+      }
+    ]
+  }
+}

@@ -1,0 +1,92 @@
+[
+  {
+    "id": "fc-dbms-1",
+    "subject": "DBMS",
+    "topic": "sql-joins",
+    "front": "What is the key functional difference between a LEFT JOIN and a FULL OUTER JOIN?",
+    "back": "A LEFT JOIN preserves all tuples from the left relation and replaces unmatched right attributes with NULL.\nA FULL OUTER JOIN preserves all tuples from BOTH relations, filling NULLs whenever either side has no match in the join predicate.",
+    "keyFormula": "LEFT JOIN = (R ⋈ S) ∪ (R - π_R(R ⋈ S)) × {NULL}",
+    "examTip": "Common trap: If you filter attributes of the right table in a WHERE clause rather than the ON clause of a LEFT JOIN, it accidentally behaves as an INNER JOIN!"
+  },
+  {
+    "id": "fc-dbms-2",
+    "subject": "DBMS",
+    "topic": "er-model-keys",
+    "front": "What defines a Candidate Key versus a Super Key?",
+    "back": "A Super Key is any set of attributes that uniquely identifies each tuple in a relation.\nA Candidate Key is a MINIMAL Super Key — no proper subset of its attributes can uniquely identify the relation.",
+    "keyFormula": "Candidate Key K ⊆ Super Key S; ∀ A ∈ K, (K - {A}) is NOT a Super Key",
+    "examTip": "Primary Key is simply one chosen Candidate Key. Candidate keys that are not selected become Alternate Keys."
+  },
+  {
+    "id": "fc-dbms-3",
+    "subject": "DBMS",
+    "topic": "normalization",
+    "front": "State the strict difference between 3NF and BCNF.",
+    "back": "Both require 2NF. For every non-trivial functional dependency X → Y:\n- 3NF allows: X is a Super Key OR Y is a Prime Attribute (part of some candidate key).\n- BCNF strictly demands: X MUST be a Super Key (no prime attribute exception allowed!).",
+    "keyFormula": "BCNF: ∀ (X → Y), X is Super Key. 3NF: ∀ (X → Y), X is Super Key ∨ Y is Prime.",
+    "examTip": "Every BCNF relation is in 3NF, but a 3NF relation with overlapping candidate keys might violate BCNF. BCNF may not always preserve dependencies upon decomposition!"
+  },
+  {
+    "id": "fc-dbms-4",
+    "subject": "DBMS",
+    "topic": "transactions-acid",
+    "front": "What are the 3 classic Concurrency Read Phenomena prevented by SQL Isolation Levels?",
+    "back": "1. Dirty Read: Transaction reads uncommitted data written by concurrent Tx (prevented by READ COMMITTED).\n2. Non-Repeatable Read: Tx re-reads a row and finds modified values (prevented by REPEATABLE READ).\n3. Phantom Read: Tx re-executes a range query and discovers newly inserted rows (prevented by SERIALIZABLE).",
+    "keyFormula": "Isolation Hierarchy: Read Uncommitted < Read Committed < Repeatable Read < Serializable",
+    "examTip": "Strict 2-Phase Locking (S2PL) holds all exclusive locks until commit/abort, guaranteeing conflict serializability and strict recoverable executions."
+  },
+  {
+    "id": "fc-dbms-5",
+    "subject": "DBMS",
+    "topic": "indexing",
+    "front": "Why are B+ Trees universally preferred over standard B-Trees for database disk indexing?",
+    "back": "1. All record pointers/data are stored exclusively at leaf nodes; internal nodes only store navigation keys, yielding high fanout and shallow tree height (typically 3-4 I/O seeks).\n2. Leaf nodes form a doubly linked list, enabling O(log N) point lookup followed by high-speed sequential disk scans for range queries.",
+    "keyFormula": "Tree Height h ≤ ⌈log_{⌈m/2⌉}(N)⌉; Leaf scan is O(K) sequential read.",
+    "examTip": "Clustered indexes dictate the physical sort order of data pages (only 1 per table); Secondary/Non-clustered indexes contain pointers to row IDs or clustered keys."
+  },
+  {
+    "id": "fc-os-1",
+    "subject": "OS",
+    "topic": "process-scheduling",
+    "front": "What causes the Convoy Effect in FCFS and how does Round Robin solve it?",
+    "back": "In FCFS (First-Come, First-Served), a single long CPU-bound process blocks all short I/O-bound processes behind it, devastating average waiting time.\nRound Robin (RR) preempts the running process after a fixed time quantum q, interleaving execution and bounding maximum wait time to (N - 1) * q.",
+    "keyFormula": "If quantum q → ∞, RR degrades to FCFS. If q → 0, context switch overhead dominates.",
+    "examTip": "Rule of thumb: Choose quantum q such that 80% of CPU bursts are shorter than q to balance responsiveness with context switch overhead."
+  },
+  {
+    "id": "fc-os-2",
+    "subject": "OS",
+    "topic": "deadlocks",
+    "front": "What are Coffman's 4 Necessary Conditions for Deadlock and how does Banker's Algorithm prevent it?",
+    "back": "1. Mutual Exclusion: Resources non-shareable.\n2. Hold and Wait: Process holds one resource while awaiting another.\n3. No Preemption: Resources cannot be forcibly taken.\n4. Circular Wait: P0 waits for P1 ... Pn waits for P0.\nBanker's Algorithm simulates resource allocation to check if a Safe Sequence exists where Need_i ≤ Available for all processes.",
+    "keyFormula": "Need[i][j] = Max[i][j] - Allocation[i][j]. Safe state guarantee: ∃ safe sequence <P_1, ..., P_n>",
+    "examTip": "Deadlock Prevention invalidates at least one of the 4 conditions at design time. Deadlock Avoidance (Banker's) checks requests dynamically at runtime."
+  },
+  {
+    "id": "fc-os-3",
+    "subject": "OS",
+    "topic": "memory-paging",
+    "front": "Explain the TLB (Translation Lookaside Buffer) mechanism and Effective Memory Access Time (EMAT).",
+    "back": "TLB is an on-chip associative cache storing recent Virtual Page Number (VPN) → Physical Frame Number (PFN) translations.\n- TLB Hit: Translation in 1 cycle, memory read in t_m → Total = t_TLB + t_m.\n- TLB Miss: Multi-level page table walk requires (k * t_m) additional memory accesses before accessing the target data.",
+    "keyFormula": "EMAT = Hit_Ratio * (t_{TLB} + t_m) + (1 - Hit_Ratio) * (t_{TLB} + (k + 1) * t_m)",
+    "examTip": "Page Fault occurs when the valid/invalid bit in the page table entry is 0 (page not in RAM, must fetch from disk swap space via hardware interrupt)."
+  },
+  {
+    "id": "fc-os-4",
+    "subject": "OS",
+    "topic": "synchronization",
+    "front": "What is the difference between a Mutex and a Counting Semaphore?",
+    "back": "A Mutex is an ownership-locking mechanism with binary states (0/1); ONLY the thread that acquired the mutex can unlock it.\nA Semaphore is a signaling integer counter that can be incremented (signal/V) or decremented (wait/P) by ANY thread to manage resource pools or coordinate execution order.",
+    "keyFormula": "Wait(S): while (S <= 0); S--; | Signal(S): S++;",
+    "examTip": "Priority Inversion occurs when a high-priority task is blocked by a low-priority task holding a mutex. It is solved via Priority Inheritance Protocol."
+  },
+  {
+    "id": "fc-os-5",
+    "subject": "OS",
+    "topic": "file-systems",
+    "front": "How does an Unix Inode structure map file blocks?",
+    "back": "An Inode contains metadata (size, permissions, timestamps) and direct/indirect block pointers:\n- 12 Direct Pointers: Point directly to disk data blocks.\n- 1 Singly Indirect: Points to a block filled with data block pointers.\n- 1 Doubly Indirect: Points to a block of indirect pointer blocks.\n- 1 Triply Indirect: Enables huge multi-terabyte file addressing.",
+    "keyFormula": "Max Blocks = 12 + (B/4) + (B/4)^2 + (B/4)^3 where B is block size in bytes (4-byte pointers).",
+    "examTip": "Hard links share the same inode number (cannot cross filesystems); Soft (Symbolic) links have their own inode containing the path string of the target."
+  }
+]

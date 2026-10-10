@@ -1,9 +1,10 @@
 // public/app.js
-// Client-side application controller for Study Buddy.
-// WHY: Strictly uses textContent and safe DOM node creation (NEVER innerHTML with user input),
+// Client-side application controller for Study Buddy AI Tutor.
+// Strictly uses textContent and safe DOM node creation (NEVER innerHTML with user input),
 // preventing XSS. Implements Home Page landing with proper Sign In & Registration,
-// 10-Question Adaptive Quiz runner, Concept Lessons with Gemini AI & live pass/fail memory,
-// Cognitive Memory inspection/correction, and 4 multi-dimensional Chart.js analytics visualizations.
+// 1-on-1 Socratic AI Tutor, 10-Question Adaptive Quiz, Concept Lessons with live pass/fail memory,
+// Active Recall Flashcards with spaced repetition, Timed Mock Exam with letter grade cards,
+// AI Study Planner & Readiness Roadmap, Cheat Sheets, Cognitive Memory, and 4 Chart.js analytics visualizations.
 
 import { api } from './api.js';
 
@@ -27,13 +28,30 @@ const TOPICS = {
 
 // Application State
 let currentUser = null;
+let currentTutorMode = 'socratic';
+let lastTutorReplyText = '';
+
+// Quiz State
 let activeQuizQuestions = [];
 let currentQuizIndex = 0;
 let quizScore = 0;
 let selectedOptionIndex = null;
-let memoryToCorrectId = null;
 
-// Chart Instances
+// Flashcards State
+let activeFlashcards = [];
+let currentFlashcardIndex = 0;
+let isFlashcardFlipped = false;
+
+// Mock Exam State
+let mockExamQuestions = [];
+let mockExamCurrentIdx = 0;
+let mockExamSubmissions = {};
+let mockExamTimerInterval = null;
+let examSecondsRemaining = 900;
+let examStartTime = null;
+
+// Memory & Chart State
+let memoryToCorrectId = null;
 let chartTopicMasteryInstance = null;
 let chartSubjectCompareInstance = null;
 let chartMemoryDistInstance = null;
@@ -72,6 +90,15 @@ const deleteAccountBtn = document.getElementById('delete-account-btn');
 // Navigation Tabs
 const tabButtons = document.querySelectorAll('.tab-btn');
 const tabPanels = document.querySelectorAll('.tab-panel');
+
+// Tab 0: AI Tutor Chat Elements
+const tutorChatMessages = document.getElementById('tutor-chat-messages');
+const tutorChatForm = document.getElementById('tutor-chat-form');
+const tutorChatInput = document.getElementById('tutor-chat-input');
+const tutorChatSubmit = document.getElementById('tutor-chat-submit');
+const tutorModeButtons = document.querySelectorAll('.tutor-mode-btn');
+const tutorReadAloudBtn = document.getElementById('tutor-read-aloud-btn');
+const quickPromptButtons = document.querySelectorAll('.quick-prompt-btn');
 
 // Tab 1: Quiz Elements
 const openerBanner = document.getElementById('opener-banner');
@@ -114,6 +141,7 @@ const lessonStatPassed = document.getElementById('lesson-stat-passed');
 const lessonStatFailed = document.getElementById('lesson-stat-failed');
 const lessonStatRate = document.getElementById('lesson-stat-rate');
 const lessonAiBadge = document.getElementById('lesson-ai-badge');
+const lessonVoiceBtn = document.getElementById('lesson-voice-btn');
 const lessonDiagnosisBox = document.getElementById('lesson-diagnosis-box');
 const lessonTitle = document.getElementById('lesson-title');
 const lessonSummary = document.getElementById('lesson-summary');
@@ -124,7 +152,57 @@ const lessonCode = document.getElementById('lesson-code');
 const lessonTakeaways = document.getElementById('lesson-takeaways');
 const quizFromLessonBtn = document.getElementById('quiz-from-lesson-btn');
 
-// Tab 3: Memories Elements
+// Tab 3: Flashcards Elements
+const flashcardSubjectSelect = document.getElementById('flashcard-subject-select');
+const flashcardCounterBadge = document.getElementById('flashcard-counter-badge');
+const flashcardElement = document.getElementById('flashcard-element');
+const fcSideLabel = document.getElementById('fc-side-label');
+const fcTopicLabel = document.getElementById('fc-topic-label');
+const fcMainText = document.getElementById('fc-main-text');
+const fcExtraBox = document.getElementById('fc-extra-box');
+const fcFormulaText = document.getElementById('fc-formula-text');
+const fcRatingContainer = document.getElementById('fc-rating-container');
+const fcVoiceBtn = document.getElementById('fc-voice-btn');
+const fcPrevBtn = document.getElementById('fc-prev-btn');
+const fcNextBtn = document.getElementById('fc-next-btn');
+
+// Tab 4: Mock Exam Elements
+const mockexamIntroCard = document.getElementById('mockexam-intro-card');
+const startMockexamBtn = document.getElementById('start-mockexam-btn');
+const mockexamActiveCard = document.getElementById('mockexam-active-card');
+const mockexamTimer = document.getElementById('mockexam-timer');
+const examQIndicator = document.getElementById('exam-q-indicator');
+const examTopicBadge = document.getElementById('exam-topic-badge');
+const examQText = document.getElementById('exam-q-text');
+const examOptionsContainer = document.getElementById('exam-options-container');
+const examPrevBtn = document.getElementById('exam-prev-btn');
+const examNextBtn = document.getElementById('exam-next-btn');
+const examSubmitBtn = document.getElementById('exam-submit-btn');
+const mockexamReportCard = document.getElementById('mockexam-report-card');
+const reportGradeCircle = document.getElementById('report-grade-circle');
+const reportScoreText = document.getElementById('report-score-text');
+const reportAdviceText = document.getElementById('report-advice-text');
+const reportReviewList = document.getElementById('report-review-list');
+const retakeMockexamBtn = document.getElementById('retake-mockexam-btn');
+
+// Tab 5: Study Planner Elements
+const refreshStudyplanBtn = document.getElementById('refresh-studyplan-btn');
+const spReadinessScore = document.getElementById('sp-readiness-score');
+const spCoveragePill = document.getElementById('sp-coverage-pill');
+const spAccuracyPill = document.getElementById('sp-accuracy-pill');
+const spChecklistContainer = document.getElementById('sp-checklist-container');
+const spCriticalContainer = document.getElementById('sp-critical-container');
+const spReinforceContainer = document.getElementById('sp-reinforce-container');
+const spMasteredContainer = document.getElementById('sp-mastered-container');
+
+// Tab 6: Cheat Sheets Elements
+const csSubjDbmsBtn = document.getElementById('cs-subj-dbms-btn');
+const csSubjOsBtn = document.getElementById('cs-subj-os-btn');
+const csTitle = document.getElementById('cs-title');
+const csSummary = document.getElementById('cs-summary');
+const csSectionsGrid = document.getElementById('cs-sections-grid');
+
+// Tab 7: Memories Elements
 const memoriesContainer = document.getElementById('memories-container');
 const refreshMemoriesBtn = document.getElementById('refresh-memories-btn');
 const correctModal = document.getElementById('correct-modal');
@@ -132,7 +210,7 @@ const correctContentInput = document.getElementById('correct-content');
 const correctSubmitBtn = document.getElementById('correct-submit-btn');
 const correctCancelBtn = document.getElementById('correct-cancel-btn');
 
-// Tab 4: Progress Elements
+// Tab 8: Progress Elements
 const statAccuracy = document.getElementById('stat-accuracy');
 const statAttempts = document.getElementById('stat-attempts');
 const statCorrect = document.getElementById('stat-correct');
@@ -147,6 +225,21 @@ if (cookieDismissBtn) {
   });
 }
 
+// --- AUDIO TEXT-TO-SPEECH HELPER ---
+function speakText(text) {
+  if (!('speechSynthesis' in window)) {
+    alert('Audio text-to-speech is not supported by your browser.');
+    return;
+  }
+  window.speechSynthesis.cancel();
+  if (!text) return;
+  const clean = text.replace(/[*_#`]/g, '');
+  const utterance = new SpeechSynthesisUtterance(clean);
+  utterance.rate = 1.0;
+  utterance.pitch = 1.05;
+  window.speechSynthesis.speak(utterance);
+}
+
 // --- INITIALIZATION ---
 
 async function init() {
@@ -154,16 +247,13 @@ async function init() {
   populateTopics(lessonSubject.value, lessonTopic);
   setupEventListeners();
 
-  // Check if session cookie exists
   try {
     const authData = await api.getMe();
     if (authData?.user) {
       setUser(authData.user);
       return;
     }
-  } catch (_) {
-    // Not logged in -> Show Home Page landing view
-  }
+  } catch (_) {}
 
   showLandingView();
 }
@@ -182,6 +272,10 @@ function setUser(user) {
   studentBadge.textContent = `${user.displayName || user.username} (${user.role || 'Student'})`;
   loadSessionOpener();
   loadRecommendedLessons();
+  loadTutorChatHistory();
+  loadFlashcards();
+  loadStudyPlan();
+  loadCheatSheet('DBMS');
   loadMemories();
   loadProgress();
 }
@@ -223,15 +317,12 @@ function setupEventListeners() {
     signupAlert.style.display = 'none';
   });
 
-  // Auth Form Submits
   loginForm.addEventListener('submit', handleLoginFormSubmit);
   signupForm.addEventListener('submit', handleSignupFormSubmit);
 
-  // Demo Login Buttons
   if (landingQuickDemoBtn) landingQuickDemoBtn.addEventListener('click', handleDemoLogin);
   if (quickDemoBtn) quickDemoBtn.addEventListener('click', handleDemoLogin);
 
-  // Logout
   logoutBtn.addEventListener('click', handleLogout);
 
   // App Tabs Navigation
@@ -239,11 +330,26 @@ function setupEventListeners() {
     btn.addEventListener('click', () => switchTab(btn.dataset.tab));
   });
 
-  // Subject Dropdowns
+  // Tab 0: AI Tutor Chat
+  tutorChatForm.addEventListener('submit', handleTutorChatSubmit);
+  tutorModeButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      tutorModeButtons.forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentTutorMode = btn.dataset.mode;
+    });
+  });
+  tutorReadAloudBtn.addEventListener('click', () => speakText(lastTutorReplyText));
+  quickPromptButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      tutorChatInput.value = btn.textContent;
+      handleTutorChatSubmit(new Event('submit'));
+    });
+  });
+
+  // Tab 1: Quiz
   selectSubject.addEventListener('change', () => populateTopics(selectSubject.value, selectTopic));
   lessonSubject.addEventListener('change', () => populateTopics(lessonSubject.value, lessonTopic));
-
-  // Quiz buttons
   startBatchQuizBtn.addEventListener('click', () => start10QuestionQuiz());
   fetchSingleQuestionBtn.addEventListener('click', () => startSingleQuestion());
   submitAnswerBtn.addEventListener('click', () => submitAnswer());
@@ -251,17 +357,62 @@ function setupEventListeners() {
   teachWeaknessBtn.addEventListener('click', () => teachWeakestTopic());
   restartQuizBtn.addEventListener('click', () => start10QuestionQuiz());
 
-  // Lessons buttons
+  // Tab 2: Lessons
   loadLessonBtn.addEventListener('click', () => loadSelectedLesson());
   teachPriorityBtn.addEventListener('click', () => teachWeakestTopic());
   quizFromLessonBtn.addEventListener('click', () => quizTopicFromLesson());
+  lessonVoiceBtn.addEventListener('click', () => {
+    const textToSpeak = `${lessonTitle.textContent}. ${lessonSummary.textContent}. ${lessonAnalogy.textContent}. ${lessonMechanics.textContent}`;
+    speakText(textToSpeak);
+  });
 
-  // Memories buttons
+  // Tab 3: Flashcards
+  flashcardElement.addEventListener('click', toggleFlashcardFlip);
+  fcPrevBtn.addEventListener('click', prevFlashcard);
+  fcNextBtn.addEventListener('click', nextFlashcard);
+  fcVoiceBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    speakText(fcMainText.textContent);
+  });
+  flashcardSubjectSelect.addEventListener('change', () => loadFlashcards(flashcardSubjectSelect.value));
+  document.querySelectorAll('.rate-btn').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      handleRateFlashcard(btn.dataset.rating);
+    });
+  });
+
+  // Tab 4: Mock Exam
+  startMockexamBtn.addEventListener('click', startMockExam);
+  examNextBtn.addEventListener('click', nextMockExamQuestion);
+  examPrevBtn.addEventListener('click', prevMockExamQuestion);
+  examSubmitBtn.addEventListener('click', submitMockExamFinal);
+  retakeMockexamBtn.addEventListener('click', () => {
+    mockexamReportCard.style.display = 'none';
+    mockexamIntroCard.style.display = 'block';
+  });
+
+  // Tab 5: Study Planner
+  refreshStudyplanBtn.addEventListener('click', loadStudyPlan);
+
+  // Tab 6: Cheat Sheets
+  csSubjDbmsBtn.addEventListener('click', () => {
+    csSubjDbmsBtn.className = 'btn-primary';
+    csSubjOsBtn.className = 'btn-outline';
+    loadCheatSheet('DBMS');
+  });
+  csSubjOsBtn.addEventListener('click', () => {
+    csSubjOsBtn.className = 'btn-primary';
+    csSubjDbmsBtn.className = 'btn-outline';
+    loadCheatSheet('OS');
+  });
+
+  // Tab 7: Memories
   refreshMemoriesBtn.addEventListener('click', () => loadMemories());
   correctCancelBtn.addEventListener('click', () => closeCorrectModal());
   correctSubmitBtn.addEventListener('click', () => submitMemoryCorrection());
 
-  // GDPR Sovereignty buttons
+  // GDPR Sovereignty
   exportDataBtn.addEventListener('click', () => exportUserData());
   deleteAccountBtn.addEventListener('click', () => deleteUserAccount());
 }
@@ -270,9 +421,13 @@ function switchTab(tabId) {
   tabButtons.forEach((b) => b.classList.toggle('active', b.dataset.tab === tabId));
   tabPanels.forEach((p) => p.classList.toggle('active', p.id === `tab-${tabId}`));
 
+  if (tabId === 'tutor') loadTutorChatHistory();
+  if (tabId === 'flashcards') loadFlashcards();
+  if (tabId === 'studyplan') loadStudyPlan();
   if (tabId === 'memories') loadMemories();
   if (tabId === 'progress') loadProgress();
   if (tabId === 'lessons') loadRecommendedLessons();
+  if (tabId === 'cheatsheet') loadCheatSheet('DBMS');
 }
 
 // --- AUTH HANDLERS ---
@@ -360,6 +515,59 @@ function showFormAlert(alertEl, msg) {
   alertEl.style.display = 'block';
 }
 
+// --- 1-ON-1 AI TUTOR CHAT ENGINE ---
+
+async function handleTutorChatSubmit(e) {
+  if (e && e.preventDefault) e.preventDefault();
+  const msg = tutorChatInput.value.trim();
+  if (!msg) return;
+
+  // Append user bubble
+  appendChatBubble('user', msg);
+  tutorChatInput.value = '';
+  tutorChatSubmit.disabled = true;
+
+  try {
+    const res = await api.tutorChat(msg, currentTutorMode);
+    lastTutorReplyText = res.reply;
+    appendChatBubble('tutor', res.reply, res.followUp);
+  } catch (err) {
+    appendChatBubble('tutor', `⚠️ Error: ${err.message}`);
+  } finally {
+    tutorChatSubmit.disabled = false;
+  }
+}
+
+function appendChatBubble(role, text, followUp = null) {
+  const bubble = document.createElement('div');
+  bubble.className = `chat-bubble ${role}`;
+  bubble.textContent = text;
+
+  if (followUp && role === 'tutor') {
+    const fuBox = document.createElement('div');
+    fuBox.className = 'follow-up-callout';
+    fuBox.textContent = `💡 Socratic Question for you: ${followUp}`;
+    bubble.appendChild(fuBox);
+  }
+
+  tutorChatMessages.appendChild(bubble);
+  tutorChatMessages.scrollTop = tutorChatMessages.scrollHeight;
+}
+
+async function loadTutorChatHistory() {
+  try {
+    const data = await api.getTutorChatHistory();
+    if (data.messages && data.messages.length > 0) {
+      tutorChatMessages.innerHTML = '';
+      data.messages.forEach((m) => {
+        appendChatBubble(m.role, m.content, m.followUp);
+      });
+      const lastTutorMsg = [...data.messages].reverse().find((m) => m.role === 'assistant');
+      if (lastTutorMsg) lastTutorReplyText = lastTutorMsg.content;
+    }
+  } catch (_) {}
+}
+
 // --- SESSION OPENER ---
 
 async function loadSessionOpener() {
@@ -443,7 +651,6 @@ function renderQuizQuestion(q) {
   questionCard.style.display = 'block';
   questionCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
-  // Update progress indicators
   const total = activeQuizQuestions.length;
   if (total > 1) {
     quizProgressHeader.style.display = 'block';
@@ -462,7 +669,6 @@ function renderQuizQuestion(q) {
 
   degradedNotice.style.display = q.degraded ? 'inline-block' : 'none';
 
-  // Render options safely
   optionsContainer.innerHTML = '';
   (q.options || []).forEach((opt, idx) => {
     const btn = document.createElement('button');
@@ -480,7 +686,7 @@ function renderQuizQuestion(q) {
     btn.appendChild(textSpan);
 
     btn.addEventListener('click', () => {
-      document.querySelectorAll('.option-btn').forEach((b) => b.classList.remove('selected'));
+      document.querySelectorAll('#options-container .option-btn').forEach((b) => b.classList.remove('selected'));
       btn.classList.add('selected');
       selectedOptionIndex = idx;
       submitAnswerBtn.disabled = false;
@@ -489,7 +695,6 @@ function renderQuizQuestion(q) {
     optionsContainer.appendChild(btn);
   });
 
-  // Display Why This Question transparency
   if (q.whyThisQuestion) {
     whyBox.style.display = 'block';
     whyText.textContent = q.whyThisQuestion.reason || 'Selected based on cognitive memory.';
@@ -511,7 +716,6 @@ async function submitAnswer() {
   try {
     const result = await api.submitAnswer(currentQ.questionId, selectedOptionIndex);
 
-    // Lock option buttons and mark correct / incorrect
     const optButtons = optionsContainer.querySelectorAll('.option-btn');
     optButtons.forEach((btn, idx) => {
       btn.disabled = true;
@@ -522,7 +726,6 @@ async function submitAnswer() {
       }
     });
 
-    // Update feedback box
     feedbackBox.style.display = 'block';
     feedbackBox.className = `feedback-box ${result.correct ? 'correct' : 'incorrect'}`;
     feedbackBox.innerHTML = '';
@@ -542,7 +745,6 @@ async function submitAnswer() {
 
     submitAnswerBtn.style.display = 'none';
 
-    // Check if there are more questions in set
     if (currentQuizIndex + 1 < activeQuizQuestions.length) {
       nextQuestionBtn.style.display = 'inline-block';
     } else {
@@ -649,14 +851,12 @@ async function teachConcept(subject, topic) {
     lessonCardView.style.display = 'block';
     lessonCardView.scrollIntoView({ behavior: 'smooth' });
 
-    // Populate Live Memory Stats Banner
     const stats = lesson.studentStats || { totalAttempts: 0, passedCount: 0, failedCount: 0, accuracyPercent: 0 };
     lessonStatAttempts.textContent = `📊 ${stats.totalAttempts} Attempted`;
     lessonStatPassed.textContent = `✅ ${stats.passedCount} Passed`;
     lessonStatFailed.textContent = `❌ ${stats.failedCount} Failed`;
     lessonStatRate.textContent = `🎯 ${stats.accuracyPercent}% Accuracy`;
 
-    // AI Provider Badge
     if (lesson.aiProvider === 'gemini') {
       lessonAiBadge.textContent = '🤖 Gemini 2.5 AI Engine (Live)';
       lessonAiBadge.style.backgroundColor = '#DCFCE7';
@@ -669,7 +869,6 @@ async function teachConcept(subject, topic) {
       lessonAiBadge.style.borderColor = '#D8B4FE';
     }
 
-    // Personal memory diagnosis
     if (lesson.diagnosis || lesson.studentDiagnosis) {
       lessonDiagnosisBox.style.display = 'block';
       lessonDiagnosisBox.textContent = `🧠 ${lesson.diagnosis || lesson.studentDiagnosis}`;
@@ -691,7 +890,6 @@ async function teachConcept(subject, topic) {
       lessonTakeaways.appendChild(li);
     });
 
-    // Configure the "Quiz This Topic" button
     quizFromLessonBtn.onclick = () => {
       switchTab('quiz');
       selectSubject.value = subject;
@@ -715,6 +913,341 @@ function quizTopicFromLesson() {
   start10QuestionQuiz();
 }
 
+// --- ACTIVE RECALL FLASHCARDS ENGINE ---
+
+async function loadFlashcards(subject = null) {
+  try {
+    const data = await api.getFlashcards(subject === 'ALL' ? null : subject);
+    activeFlashcards = data.flashcards || [];
+    currentFlashcardIndex = 0;
+    isFlashcardFlipped = false;
+    renderCurrentFlashcard();
+  } catch (err) {
+    fcMainText.textContent = `Error loading flashcards: ${err.message}`;
+  }
+}
+
+function renderCurrentFlashcard() {
+  if (activeFlashcards.length === 0) {
+    fcMainText.textContent = 'No flashcards available.';
+    return;
+  }
+
+  const card = activeFlashcards[currentFlashcardIndex];
+  flashcardCounterBadge.textContent = `Card ${currentFlashcardIndex + 1} of ${activeFlashcards.length}`;
+  fcTopicLabel.textContent = `${card.subject} / ${card.topic}`;
+
+  if (!isFlashcardFlipped) {
+    fcSideLabel.textContent = 'FRONT (QUESTION)';
+    fcMainText.textContent = card.front;
+    fcExtraBox.style.display = 'none';
+    fcRatingContainer.style.display = 'none';
+  } else {
+    fcSideLabel.textContent = 'BACK (EXPLANATION & PROOF)';
+    fcMainText.textContent = card.back;
+    if (card.keyFormula) {
+      fcExtraBox.style.display = 'block';
+      fcFormulaText.textContent = card.keyFormula;
+    } else {
+      fcExtraBox.style.display = 'none';
+    }
+    fcRatingContainer.style.display = 'flex';
+  }
+
+  fcPrevBtn.disabled = currentFlashcardIndex === 0;
+  fcNextBtn.disabled = currentFlashcardIndex === activeFlashcards.length - 1;
+}
+
+function toggleFlashcardFlip() {
+  isFlashcardFlipped = !isFlashcardFlipped;
+  renderCurrentFlashcard();
+}
+
+function prevFlashcard() {
+  if (currentFlashcardIndex > 0) {
+    currentFlashcardIndex -= 1;
+    isFlashcardFlipped = false;
+    renderCurrentFlashcard();
+  }
+}
+
+function nextFlashcard() {
+  if (currentFlashcardIndex < activeFlashcards.length - 1) {
+    currentFlashcardIndex += 1;
+    isFlashcardFlipped = false;
+    renderCurrentFlashcard();
+  }
+}
+
+async function handleRateFlashcard(rating) {
+  const card = activeFlashcards[currentFlashcardIndex];
+  try {
+    await api.rateFlashcard(card.id, rating, card.topic, card.subject);
+    if (currentFlashcardIndex < activeFlashcards.length - 1) {
+      nextFlashcard();
+    } else {
+      alert(`🎉 Flashcard set completed! Your recall ratings updated MongoDB Cognitive Memory.`);
+    }
+  } catch (err) {
+    alert(`Failed to save rating: ${err.message}`);
+  }
+}
+
+// --- TIMED MOCK EXAM SIMULATOR ---
+
+async function startMockExam() {
+  startMockexamBtn.disabled = true;
+  startMockexamBtn.textContent = 'Preparing 15-Question Exam...';
+
+  try {
+    const data = await api.startMockExam();
+    mockExamQuestions = data.questions || [];
+    mockExamCurrentIdx = 0;
+    mockExamSubmissions = {};
+    examSecondsRemaining = data.timeLimitSeconds || 900;
+    examStartTime = Date.now();
+
+    mockexamIntroCard.style.display = 'none';
+    mockexamReportCard.style.display = 'none';
+    mockexamActiveCard.style.display = 'block';
+
+    renderMockExamQuestion();
+    startExamTimer();
+  } catch (err) {
+    alert(`Failed to start mock exam: ${err.message}`);
+  } finally {
+    startMockexamBtn.disabled = false;
+    startMockexamBtn.textContent = '🚀 Start 15-Minute Mock Exam';
+  }
+}
+
+function startExamTimer() {
+  if (mockExamTimerInterval) clearInterval(mockExamTimerInterval);
+  updateTimerDisplay();
+
+  mockExamTimerInterval = setInterval(() => {
+    examSecondsRemaining -= 1;
+    updateTimerDisplay();
+
+    if (examSecondsRemaining <= 0) {
+      clearInterval(mockExamTimerInterval);
+      alert('⏰ Time is up! Submitting your exam automatically...');
+      submitMockExamFinal();
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const mins = Math.floor(examSecondsRemaining / 60);
+  const secs = examSecondsRemaining % 60;
+  mockexamTimer.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+}
+
+function renderMockExamQuestion() {
+  const q = mockExamQuestions[mockExamCurrentIdx];
+  const total = mockExamQuestions.length;
+
+  examQIndicator.textContent = `Question ${mockExamCurrentIdx + 1} of ${total}`;
+  examTopicBadge.textContent = `${q.subject} / ${q.topic}`;
+  examQText.textContent = q.question;
+
+  examPrevBtn.disabled = mockExamCurrentIdx === 0;
+  examNextBtn.style.display = mockExamCurrentIdx === total - 1 ? 'none' : 'inline-block';
+
+  examOptionsContainer.innerHTML = '';
+  const selectedIdx = mockExamSubmissions[q.questionId];
+
+  (q.options || []).forEach((opt, idx) => {
+    const btn = document.createElement('button');
+    btn.className = `option-btn ${selectedIdx === idx ? 'selected' : ''}`;
+
+    const letterSpan = document.createElement('span');
+    letterSpan.className = 'option-letter';
+    letterSpan.textContent = String.fromCharCode(65 + idx);
+
+    const textSpan = document.createElement('span');
+    textSpan.textContent = opt;
+
+    btn.appendChild(letterSpan);
+    btn.appendChild(textSpan);
+
+    btn.addEventListener('click', () => {
+      mockExamSubmissions[q.questionId] = idx;
+      document.querySelectorAll('#exam-options-container .option-btn').forEach((b) => b.classList.remove('selected'));
+      btn.classList.add('selected');
+    });
+
+    examOptionsContainer.appendChild(btn);
+  });
+}
+
+function nextMockExamQuestion() {
+  if (mockExamCurrentIdx < mockExamQuestions.length - 1) {
+    mockExamCurrentIdx += 1;
+    renderMockExamQuestion();
+  }
+}
+
+function prevMockExamQuestion() {
+  if (mockExamCurrentIdx > 0) {
+    mockExamCurrentIdx -= 1;
+    renderMockExamQuestion();
+  }
+}
+
+async function submitMockExamFinal() {
+  if (mockExamTimerInterval) clearInterval(mockExamTimerInterval);
+  const timeSpentSeconds = Math.round((Date.now() - examStartTime) / 1000);
+
+  const submissions = mockExamQuestions.map((q) => ({
+    questionId: q.questionId,
+    selectedOptionIndex: mockExamSubmissions[q.questionId] !== undefined ? mockExamSubmissions[q.questionId] : -1
+  }));
+
+  examSubmitBtn.disabled = true;
+  examSubmitBtn.textContent = 'Grading Exam...';
+
+  try {
+    const result = await api.submitMockExam(submissions, timeSpentSeconds);
+    mockexamActiveCard.style.display = 'none';
+    mockexamReportCard.style.display = 'block';
+
+    reportGradeCircle.textContent = result.letterGrade;
+    reportGradeCircle.className = `grade-badge-circle grade-${result.letterGrade.charAt(0)}`;
+    reportScoreText.textContent = `Score: ${result.score} / ${result.total} (${result.accuracy}%) &bull; Time: ${Math.floor(timeSpentSeconds / 60)}m ${timeSpentSeconds % 60}s`;
+    reportAdviceText.textContent = result.tutorAdvice;
+
+    // Review List
+    reportReviewList.innerHTML = '<h3 style="margin-bottom: 0.75rem;">Question Breakdown & Solutions</h3>';
+    (result.details || []).forEach((d, idx) => {
+      const item = document.createElement('div');
+      item.style.padding = '0.75rem';
+      item.style.marginBottom = '0.5rem';
+      item.style.borderRadius = '6px';
+      item.style.border = '1px solid var(--border-color)';
+      item.style.backgroundColor = d.correct ? '#F0FDF4' : '#FEF2F2';
+
+      const qTitle = document.createElement('strong');
+      qTitle.textContent = `Q${idx + 1}: ${d.question}`;
+      const outcome = document.createElement('div');
+      outcome.style.fontSize = '0.85rem';
+      outcome.style.marginTop = '0.25rem';
+      outcome.textContent = `${d.correct ? '✅ Correct' : '❌ Incorrect'} | Topic: ${d.topic}`;
+      const expl = document.createElement('div');
+      expl.style.fontSize = '0.82rem';
+      expl.style.color = 'var(--text-muted)';
+      expl.textContent = `Explanation: ${d.explanation}`;
+
+      item.appendChild(qTitle);
+      item.appendChild(outcome);
+      item.appendChild(expl);
+      reportReviewList.appendChild(item);
+    });
+  } catch (err) {
+    alert(`Failed to grade exam: ${err.message}`);
+  } finally {
+    examSubmitBtn.disabled = false;
+    examSubmitBtn.textContent = 'Submit Exam Final';
+  }
+}
+
+// --- AI STUDY PLANNER ENGINE ---
+
+async function loadStudyPlan() {
+  try {
+    const data = await api.getStudyPlan();
+    spReadinessScore.textContent = `${data.readinessScore}%`;
+    spCoveragePill.textContent = `Syllabus Coverage: ${data.coverageScore}%`;
+    spAccuracyPill.textContent = `Average Accuracy: ${data.overallAccuracy}%`;
+
+    // Action Checklist
+    spChecklistContainer.innerHTML = '';
+    (data.actionChecklist || []).forEach((act) => {
+      const item = document.createElement('div');
+      item.style.padding = '0.6rem 0.85rem';
+      item.style.backgroundColor = '#FFFFFF';
+      item.style.border = '1px solid var(--border-color)';
+      item.style.borderRadius = '6px';
+      item.style.fontSize = '0.9rem';
+      item.style.fontWeight = '500';
+      item.textContent = act;
+      spChecklistContainer.appendChild(item);
+    });
+
+    // Critical Priority
+    spCriticalContainer.innerHTML = '';
+    if ((data.criticalList || []).length === 0) {
+      spCriticalContainer.innerHTML = '<p style="font-size: 0.82rem; color: #166534;">🎉 Zero critical weaknesses detected!</p>';
+    } else {
+      data.criticalList.forEach((c) => {
+        const box = document.createElement('div');
+        box.className = 'study-priority-card';
+        box.textContent = `${c.label} (${c.accuracy}% Accuracy) — ${c.reason}`;
+        spCriticalContainer.appendChild(box);
+      });
+    }
+
+    // Reinforcement
+    spReinforceContainer.innerHTML = '';
+    (data.reinforcementList || []).forEach((r) => {
+      const box = document.createElement('div');
+      box.style.borderLeftColor = '#F59E0B';
+      box.className = 'study-priority-card';
+      box.textContent = `${r.label} (${r.accuracy}% Accuracy)`;
+      spReinforceContainer.appendChild(box);
+    });
+
+    // Mastered
+    spMasteredContainer.innerHTML = '';
+    (data.masteredList || []).forEach((m) => {
+      const box = document.createElement('div');
+      box.style.borderLeftColor = '#166534';
+      box.className = 'study-priority-card';
+      box.textContent = `✅ ${m.label} (${m.accuracy}% Accuracy)`;
+      spMasteredContainer.appendChild(box);
+    });
+  } catch (err) {
+    console.warn('Failed to load study plan:', err);
+  }
+}
+
+// --- REVISION CHEAT SHEETS ENGINE ---
+
+async function loadCheatSheet(subject) {
+  try {
+    const data = await api.getCheatSheet(subject);
+    const sheet = data.sheet;
+
+    csTitle.textContent = sheet.title;
+    csSummary.textContent = sheet.summary;
+    csSectionsGrid.innerHTML = '';
+
+    (sheet.sections || []).forEach((sec) => {
+      const box = document.createElement('div');
+      box.className = 'chart-card';
+      box.style.padding = '1rem';
+
+      const h4 = document.createElement('h4');
+      h4.style.color = 'var(--primary-dark)';
+      h4.style.fontSize = '0.95rem';
+      h4.style.marginBottom = '0.5rem';
+      h4.textContent = sec.heading;
+
+      const p = document.createElement('p');
+      p.style.fontSize = '0.85rem';
+      p.style.lineHeight = '1.6';
+      p.style.whiteSpace = 'pre-line';
+      p.textContent = sec.content;
+
+      box.appendChild(h4);
+      box.appendChild(p);
+      csSectionsGrid.appendChild(box);
+    });
+  } catch (err) {
+    csSummary.textContent = `Failed to load cheat sheet: ${err.message}`;
+  }
+}
+
 // --- COGNITIVE MEMORIES TAB ---
 
 async function loadMemories() {
@@ -725,7 +1258,7 @@ async function loadMemories() {
     memoriesContainer.innerHTML = '';
 
     if (!data.memories || data.memories.length === 0) {
-      memoriesContainer.innerHTML = '<p style="color: var(--text-muted); padding: 1rem;">No cognitive memories recorded yet. Take a quiz to let the AI learn your patterns!</p>';
+      memoriesContainer.innerHTML = '<p style="color: var(--text-muted); padding: 1rem;">No cognitive memories recorded yet. Take a quiz or chat with the AI Tutor to build your profile!</p>';
       return;
     }
 
@@ -844,17 +1377,9 @@ async function loadProgress() {
 
 function renderAllCharts(data) {
   if (!window.Chart) return;
-
-  // 1. Chart: Topic Mastery Breakdown (Horizontal Bar)
   renderTopicMasteryChart(data.topicBreakdown || []);
-
-  // 2. Chart: Subject Performance (Pass vs Fail Comparison)
   renderSubjectCompareChart(data.subjectBreakdown || []);
-
-  // 3. Chart: Cognitive Memory State Breakdown (Doughnut)
   renderMemoryDistChart(data.memoryBreakdown || {});
-
-  // 4. Chart: Learning Progression Curve (Line)
   renderTimelineChart(data.timeline || []);
 }
 
@@ -869,9 +1394,9 @@ function renderTopicMasteryChart(topics) {
   const labels = topics.map((t) => t.topic);
   const dataValues = topics.map((t) => t.accuracy);
   const backgroundColors = dataValues.map((val) => {
-    if (val >= 70) return '#166534'; // Green
-    if (val >= 40) return '#B45309'; // Amber
-    return '#DC2626'; // Red
+    if (val >= 70) return '#166534';
+    if (val >= 40) return '#B45309';
+    return '#DC2626';
   });
 
   chartTopicMasteryInstance = new window.Chart(canvas, {
@@ -891,9 +1416,7 @@ function renderTopicMasteryChart(topics) {
       indexAxis: 'y',
       responsive: true,
       maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false }
-      },
+      plugins: { legend: { display: false } },
       scales: {
         x: {
           beginAtZero: true,
@@ -967,7 +1490,6 @@ function renderMemoryDistChart(memoryBreakdown) {
   const weaknesses = memoryBreakdown.activeWeaknesses || 0;
   const superseded = memoryBreakdown.supersededCount || 0;
 
-  // If no memories yet, show empty placeholder segment
   const hasData = strengths + weaknesses + superseded > 0;
   const data = hasData ? [strengths, weaknesses, superseded] : [1];
   const labels = hasData ? ['Active Strengths', 'Active Weaknesses', 'Superseded (Mastered)'] : ['No memories yet'];
@@ -989,9 +1511,7 @@ function renderMemoryDistChart(memoryBreakdown) {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: {
-          position: 'bottom'
-        }
+        legend: { position: 'bottom' }
       }
     }
   });
