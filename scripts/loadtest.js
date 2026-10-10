@@ -7,6 +7,7 @@ import autocannon from 'autocannon';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { env } from '../src/config/env.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -19,12 +20,13 @@ if (!fs.existsSync(docsDir)) {
 const outputFile = path.join(docsDir, 'loadtest-results.txt');
 
 async function runBenchmark(name, url, headers = {}) {
-  console.log(`\n⏳ Running load test on ${name} (${url}) for 10 seconds with 20 connections...`);
+  const connections = env.MONGO_MAX_POOL || 20;
+  console.log(`\n⏳ Running load test on ${name} (${url}) for 10 seconds with ${connections} connections...`);
   return new Promise((resolve, reject) => {
     autocannon(
       {
         url,
-        connections: 20,
+        connections,
         duration: 10,
         headers
       },
@@ -37,11 +39,13 @@ async function runBenchmark(name, url, headers = {}) {
 }
 
 async function main() {
-  const baseUrl = 'http://localhost:3000';
+  const baseUrl = env.STRESS_TARGET || `http://localhost:${env.PORT || 3000}`;
   let report = `========================================================================\n`;
   report += `  STUDY BUDDY: LOAD TEST REPORT (autocannon)\n`;
-  report += `  Generated: ${new Date().toISOString()}\n`;
-  report += `  Concurrency: 20 connections | Duration: 10 seconds per endpoint\n`;
+  report += `  Generated:     ${new Date().toISOString()}\n`;
+  report += `  Target URL:    ${baseUrl}\n`;
+  report += `  Database Tier: ${env.STRESS_DB_TIER || 'Atlas M0'}\n`;
+  report += `  Concurrency:   ${env.MONGO_MAX_POOL || 20} connections | Duration: 10s per endpoint\n`;
   report += `========================================================================\n\n`;
 
   try {
