@@ -69,3 +69,17 @@ test('16. Concurrency rule enforces atomic upsert filter { ownerId, subject, top
   assert.equal(retryCount, 1, 'Must retry exactly ONCE on error 11000');
 });
 
+test('17. Resilience observability exposes eventLoopDelay and memoryUsage metrics', async () => {
+  const { getEventLoopDelay } = await import('../src/middleware/metrics.js');
+  const eld = getEventLoopDelay();
+  assert.equal(typeof eld.min_ms, 'number', 'min_ms must be numeric');
+  assert.equal(typeof eld.max_ms, 'number', 'max_ms must be numeric');
+  assert.equal(typeof eld.mean_ms, 'number', 'mean_ms must be numeric');
+  assert.equal(typeof eld.p50_ms, 'number', 'p50_ms must be numeric');
+  assert.equal(typeof eld.p99_ms, 'number', 'p99_ms must be numeric');
+
+  const mem = process.memoryUsage();
+  assert.ok(mem.rss > 0, 'RSS memory must be positive');
+  assert.ok(mem.heapUsed > 0, 'Heap used must be positive');
+});
+
