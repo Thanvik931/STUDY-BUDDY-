@@ -47,6 +47,22 @@ app.use(helmet({
 // 3. Metrics tracking middleware (records duration, errors, p50/p95 percentiles)
 app.use(metricsMiddleware);
 
+// 4. Request timeout middleware: 30 seconds max duration
+// WHY: Resilience requirement. Prevents slow clients or hung downstream connections from holding server sockets indefinitely.
+app.use((req, res, next) => {
+  req.setTimeout(30000, () => {
+    if (!res.headersSent) {
+      res.status(504).json({
+        error: {
+          code: 'REQUEST_TIMEOUT',
+          message: 'Server request timed out after 30 seconds'
+        }
+      });
+    }
+  });
+  next();
+});
+
 // 4. Rate Limiting: 60 requests/min overall, 20 requests/min on /api/question
 const globalLimiter = rateLimit({
   windowMs: 60 * 1000,
@@ -109,6 +125,9 @@ async function startServer() {
     server = app.listen(env.PORT, () => {
       console.log(`🚀 Study Buddy server listening on http://localhost:${env.PORT}`);
     });
+    // Set 30 seconds HTTP request timeout on server socket layer
+    server.requestTimeout = 30000;
+    server.headersTimeout = 35000;
   } catch (err) {
     console.error('Failed to start server:', err);
     process.exit(1);
