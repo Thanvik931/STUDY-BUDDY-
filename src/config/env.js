@@ -43,3 +43,43 @@ if (!parsed.success) {
 }
 
 export const env = parsed.data;
+
+// Runtime stress testing flags
+// Invariant: When STRESS_MODE is false, NONE of the failure injection flags have any effect!
+let runtimeStressFlags = {
+  failEmbedding: env.FAIL_EMBEDDING,
+  failAi: env.FAIL_AI,
+  delayAiMs: env.DELAY_AI_MS
+};
+
+export function getStressFlags() {
+  if (!env.STRESS_MODE) {
+    // In normal mode, failure flags and artificial latency are STRICTLY INACTIVE
+    return {
+      failEmbedding: false,
+      failAi: false,
+      delayAiMs: 0
+    };
+  }
+  return { ...runtimeStressFlags };
+}
+
+export function setStressFlags({ failEmbedding, failAi, delayAiMs } = {}) {
+  if (!env.STRESS_MODE) {
+    throw new Error('STRESS_MODE is disabled: cannot modify stress flags in normal operation');
+  }
+  if (typeof failEmbedding === 'boolean') runtimeStressFlags.failEmbedding = failEmbedding;
+  if (typeof failAi === 'boolean') runtimeStressFlags.failAi = failAi;
+  if (typeof delayAiMs === 'number') runtimeStressFlags.delayAiMs = Math.max(0, delayAiMs);
+  return { ...runtimeStressFlags };
+}
+
+export function resetStressFlags() {
+  if (env.STRESS_MODE) {
+    runtimeStressFlags = {
+      failEmbedding: env.FAIL_EMBEDDING,
+      failAi: env.FAIL_AI,
+      delayAiMs: env.DELAY_AI_MS
+    };
+  }
+}
