@@ -60,6 +60,11 @@ function generateLocalVector(text, dimensions = 1536) {
  * Checks the in-memory cache first, then calls the configured provider or fallback.
  */
 export async function getEmbedding(text) {
+  // Resilience simulation flag for chaos / stress testing
+  if (env.FAIL_EMBEDDING) {
+    throw new Error('Simulated embedding failure (FAIL_EMBEDDING=true)');
+  }
+
   const cacheKey = text.trim().toLowerCase();
   const cached = embeddingCache.get(cacheKey);
   if (cached) {

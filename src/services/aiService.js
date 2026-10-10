@@ -46,6 +46,16 @@ function getFallbackQuestion(subject, topic) {
  * Attempts a single call to Claude to generate an MCQ.
  */
 async function callClaudeOnce(systemPrompt, userPrompt) {
+  // Resilience simulation flag: simulate complete AI service outage
+  if (env.FAIL_AI) {
+    throw new Error('Simulated AI failure (FAIL_AI=true)');
+  }
+
+  // Artificial latency simulation for stress and timeout testing
+  if (env.DELAY_AI_MS > 0) {
+    await new Promise((resolve) => setTimeout(resolve, env.DELAY_AI_MS));
+  }
+
   if (!anthropicClient) {
     throw new Error('Anthropic API key is not configured.');
   }
