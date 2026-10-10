@@ -364,9 +364,9 @@ export async function getMemoriesList({ ownerId, skip = 0, limit = 20 }) {
   const filter = buildOwnerFilter(ownerId);
   const total = await db.collection('memories').countDocuments(filter);
 
-  // Exclude heavy embedding vectors from list responses for performance
+  // Performance tuning: Exclude heavy embedding vectors and nested evidence from list responses
   const memories = await db.collection('memories')
-    .find(filter, { projection: { embedding: 0 } })
+    .find(filter, { projection: { embedding: 0, evidence: 0 } })
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(safeLimit)

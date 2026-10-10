@@ -66,6 +66,11 @@ export async function setupAll() {
       { ownerId: 1, status: 1, subject: 1, topic: 1 },
       { name: 'memories_owner_status_subject_topic_idx' }
     );
+    // Performance tuning index: accelerates paginated chronological reads in GET /api/memories
+    await db.collection('memories').createIndex(
+      { ownerId: 1, createdAt: -1 },
+      { name: 'memories_owner_created_idx' }
+    );
     // TTL index: auto-deletes expired memories when expiresAt date is reached
     await db.collection('memories').createIndex(
       { expiresAt: 1 },
