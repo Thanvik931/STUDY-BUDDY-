@@ -92,7 +92,7 @@ const envSchema = z.object({
 const parsed = envSchema.safeParse(process.env);
 
 if (!parsed.success) {
-  console.error('❌ Configuration error in environment:');
+  console.error(' Configuration error in environment:');
   for (const issue of parsed.error.issues) {
     // Redaction invariant: NEVER print actual values!
     console.error(`   - ${issue.path.join('.')}: ${issue.message}`);

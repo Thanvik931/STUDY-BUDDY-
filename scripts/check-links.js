@@ -38,7 +38,7 @@ function checkHtmlFile(filePath) {
       : path.join(path.dirname(filePath), cleanRef);
 
     if (!fs.existsSync(resolved)) {
-      console.log(`❌ [BROKEN] ${relFile} references missing file: ${rawRef}`);
+      console.log(` [BROKEN] ${relFile} references missing file: ${rawRef}`);
       issues++;
     } else {
       console.log(`• Asset resolved: ${rawRef} -> OK`);

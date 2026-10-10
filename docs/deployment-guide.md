@@ -5,7 +5,7 @@
 
 ---
 
-## ⚡ Quick Start: 3-Minute Deployment on Render (Recommended)
+##  Quick Start: 3-Minute Deployment on Render (Recommended)
 
 Render offers a free tier, native Node.js support, automatic SSL certificates (`https://`), and continuous deployment whenever you push code to GitHub.
 
@@ -60,7 +60,7 @@ Under the **Environment Variables** section on Render, add the following variabl
 
 ---
 
-## 🚂 Option 2: Deploy on Railway
+##  Option 2: Deploy on Railway
 
 Railway automatically detects Node.js projects from GitHub and provides instant deployment:
 
@@ -73,7 +73,7 @@ Railway automatically detects Node.js projects from GitHub and provides instant 
 
 ---
 
-## 🐳 Option 3: Deploy with Docker (Any VPS / AWS EC2 / DigitalOcean)
+##  Option 3: Deploy with Docker (Any VPS / AWS EC2 / DigitalOcean)
 
 This repository includes a multi-stage production [`Dockerfile`](file:///c:/Users/RUSHITHA/Desktop/Mongodb%20Hackathon/Dockerfile) and [`.dockerignore`](file:///c:/Users/RUSHITHA/Desktop/Mongodb%20Hackathon/.dockerignore).
 
@@ -107,11 +107,11 @@ curl http://localhost:3000/api/health
 
 ---
 
-## 🛡️ Production Verification Checklist
+## ️ Production Verification Checklist
 After deploying, verify the live instance:
 - [ ] Access the landing page: `https://<your-domain>/`
 - [ ] Test the **1-Click Judge Demo (Evaluator Ravi Kumar)** button.
-- [ ] Test the **🏆 Hackathon Rubric** modal in the top header.
+- [ ] Test the ** Hackathon Rubric** modal in the top header.
 - [ ] Navigate the **Left Sidebar** across all 9 features.
 - [ ] Check `/api/health` returns HTTP 200 `{ "status": "ok" }`.
 - [ ] Check `/api/metrics` displays process telemetry.

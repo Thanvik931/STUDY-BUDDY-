@@ -22,7 +22,7 @@ htmlFiles.forEach((file) => {
   const content = fs.readFileSync(path.join(publicDir, file), 'utf-8');
   let match;
   while ((match = TOKEN_REGEX.exec(content)) !== null) {
-    console.log(`❌ [FLAG] ${file} contains raw unrendered token: ${match[0]}`);
+    console.log(` [FLAG] ${file} contains raw unrendered token: ${match[0]}`);
     unrenderedTokens++;
   }
 });

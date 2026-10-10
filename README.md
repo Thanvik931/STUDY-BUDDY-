@@ -1,17 +1,17 @@
-# 🎓 Study Buddy: Adaptive AI Study Companion
+#  Study Buddy: Adaptive AI Study Companion
 > **MongoDB Student Hackathon — Track 1: Agentic Memory**  
 > *An adaptive engineering study companion that remembers conceptual misconceptions and learning styles, visibly evolving questions, difficulty, and explanations over time using MongoDB Atlas.*
 
 ---
 
-## 📖 1. Plain-Language Overview
+##  1. Plain-Language Overview
 Every engineering student learns differently and trips on different concepts. Some confuse SQL `LEFT JOIN` with `INNER JOIN`; others struggle with OS Deadlock conditions. Standard AI tutors treat every interaction as an isolated session with complete amnesia. 
 
 **Study Buddy** solves this by maintaining an **external cognitive memory layer in MongoDB Atlas**. When a student makes repeated mistakes on a topic, the backend diagnoses the conceptual root cause, saves it as a structured MongoDB document with a vector embedding, and dynamically retrieves it in later sessions to tailor difficulty and pedagogical scaffolding. Students retain complete sovereignty to inspect what the AI remembers, correct false diagnoses, or delete memories, while temporary cramming sessions auto-expire using native **MongoDB TTL indexes**.
 
 ---
 
-## 🏗️ 2. ASCII Architecture Diagram
+## ️ 2. ASCII Architecture Diagram
 
 ```text
 +----------------------------------------------------------------------------------+
@@ -69,7 +69,7 @@ Every engineering student learns differently and trips on different concepts. So
 
 ---
 
-## 🛠️ 3. Why Each Technology Was Chosen
+## ️ 3. Why Each Technology Was Chosen
 
 | Technology | Purpose in Project | Rationale (Why Chosen) |
 | :--- | :--- | :--- |
@@ -85,7 +85,7 @@ Every engineering student learns differently and trips on different concepts. So
 
 ---
 
-## ⚡ 4. Setup Steps
+##  4. Setup Steps
 
 ### Prerequisites
 * Node.js v20.0.0 or higher
@@ -155,7 +155,7 @@ Open **`http://localhost:3000`** in your browser.
 
 ---
 
-## 📡 5. Complete REST API Table
+##  5. Complete REST API Table
 
 All endpoints return standardized JSON. Errors always adhere to `{ error: { code, message } }`.
 
@@ -177,7 +177,7 @@ All endpoints return standardized JSON. Errors always adhere to `{ error: { code
 
 ---
 
-## 🍃 6. MongoDB Collections & Indexes Table
+##  6. MongoDB Collections & Indexes Table
 
 | Collection | Index Name | Specification | Purpose |
 | :--- | :--- | :--- | :--- |
@@ -190,7 +190,7 @@ All endpoints return standardized JSON. Errors always adhere to `{ error: { code
 
 ---
 
-## 🔒 7. Security Checklist
+##  7. Security Checklist
 
 - [x] **Strict Profile Separation:** `requireStudent` middleware extracts and verifies `x-student-id` on all authenticated routes.
 - [x] **Owner-Enforced Queries:** Every database read, update, and delete uses `buildOwnerFilter(req.ownerId, ...)`. Students can never modify or view another student's data.
@@ -204,7 +204,7 @@ All endpoints return standardized JSON. Errors always adhere to `{ error: { code
 
 ---
 
-## ⚡ 8. Performance & Scalability Notes
+##  8. Performance & Scalability Notes
 
 * **Connection Pooling:** Single shared `MongoClient` with `maxPoolSize: 20` and `serverSelectionTimeoutMS: 5000` eliminates connection churn.
 * **Vector Projection Optimization:** List queries (`GET /api/memories`) use projections `{ embedding: 0 }` to avoid transmitting megabytes of vector float arrays across the network.
@@ -216,20 +216,20 @@ All endpoints return standardized JSON. Errors always adhere to `{ error: { code
 
 ---
 
-## 🎬 9. Live Demo Script (4-Minute Presentation Flow)
+##  9. Live Demo Script (4-Minute Presentation Flow)
 
 | Step | Action on Screen | Spoken Explanation |
 | :--- | :--- | :--- |
 | **1. Baseline State** | Open app, switch to **"Ravi (Day 1 - Blank Slate)"**. Notice 0 memories in Tab 2. | *"Ravi is on Day 1. The AI has no prior memories. When he requests a question on SQL Joins, it generates a standard Medium diagnostic question."* |
 | **2. Making Mistakes** | Answer incorrectly twice on DBMS SQL Joins. | *"Ravi submits two incorrect answers. Rule A triggers atomically in MongoDB: a new weakness memory is formed with strength 0.5 and a 30-day TTL expiry."* |
 | **3. Visible Adaptation** | Request a new question on SQL Joins in Session 2. | *"Notice what happened! The difficulty dropped to EASY, the explanation includes an intuitive real-world analogy, and the 'Why this question' box explicitly shows the memory recalled from Atlas."* |
-| **4. Student Sovereignty** | Navigate to Tab 2 (Cognitive Memory). Click **"✏️ Correct"** on the memory. | *"The student has full agency. We click Correct to explain that Ravi now understands joins. The old weakness is marked superseded, wrong counters are reset, and a strength memory is created."* |
-| **5. The Difficult Case (TTL Expiry)** | Click **"⚡ Toggle Cram Mode"** (or call `/api/demo/expiring-memory`). | *"For exam prep, Ravi sets a 120-second Cram Mode memory. Using MongoDB's native TTL index on expiresAt, the database automatically purges this document when the timer expires without any server cron jobs."* |
+| **4. Student Sovereignty** | Navigate to Tab 2 (Cognitive Memory). Click **"️ Correct"** on the memory. | *"The student has full agency. We click Correct to explain that Ravi now understands joins. The old weakness is marked superseded, wrong counters are reset, and a strength memory is created."* |
+| **5. The Difficult Case (TTL Expiry)** | Click **" Toggle Cram Mode"** (or call `/api/demo/expiring-memory`). | *"For exam prep, Ravi sets a 120-second Cram Mode memory. Using MongoDB's native TTL index on expiresAt, the database automatically purges this document when the timer expires without any server cron jobs."* |
 | **6. Visual Progress** | Navigate to Tab 3 (Progress). | *"Our MongoDB aggregation pipeline computes accuracy per topic over time, rendered cleanly on Chart.js."* |
 
 ---
 
-## 🔍 10. Honest Limitations & Trade-Offs
+##  10. Honest Limitations & Trade-Offs
 
 1. **Authentication:** The current system uses `x-student-id` header-based profile separation for frictionless hackathon demonstration. Production systems would require cryptographic JWTs or session cookies.
 2. **Local Embedding Fallback:** When an external embedding API key is absent, the system uses deterministic normalized vector generation. While mathematically sound for local cosine similarity testing, production systems require hosted models like `text-embedding-3-small` or Voyage AI.
@@ -237,7 +237,7 @@ All endpoints return standardized JSON. Errors always adhere to `{ error: { code
 
 ---
 
-## 📊 11. Evidence & Evaluation
+##  11. Evidence & Evaluation
 
 ### 11A. Quality Evaluation (`scripts/evaluate.js`)
 Demonstrates that the memory-driven policy detects recurring errors, adapts difficulty to foundational scaffolding, and produces significantly higher recovery on vulnerable topics (+46.7% accuracy boost on weak topics) compared to a random baseline tutor. Run via:
@@ -255,7 +255,7 @@ npm run stress:soak     # Soak mode with 5-minute memory and event-loop monitori
 
 ---
 
-## 🛡️ 12. Stress & Resilience Engineering
+## ️ 12. Stress & Resilience Engineering
 
 Study Buddy incorporates an honest, production-conscious resilience and stress testing harness (`scripts/stresstest.js`) designed to observe system behavior under extreme load, high concurrency, simulated external failures, and deliberate abuse.
 
@@ -306,7 +306,7 @@ npm run stress:quick
 
 ---
 
-## 🔒 13. Security, Privacy & Launch Hardening
+##  13. Security, Privacy & Launch Hardening
 
 Study Buddy adheres to comprehensive security and user privacy standards (Section 13):
 - **Argon2id Password Hashing:** Memory-cost tuned (memoryCost: 19456, timeCost: 2, parallelism: 1) with Scrypt fallback. Includes `dummyVerifyPassword()` timing equalization against user enumeration.
@@ -320,7 +320,7 @@ Study Buddy adheres to comprehensive security and user privacy standards (Sectio
 
 ---
 
-## 🎓 14. 10-Question Adaptive Quiz & Concept Teaching Hub
+##  14. 10-Question Adaptive Quiz & Concept Teaching Hub
 
 ### 10-Question Adaptive Quiz Engine
 - **Batch Quiz Generator (`POST /api/quiz/generate-set`):** Allows students to take a full 10-question adaptive exam across a specific topic or all topics in DBMS / OS.

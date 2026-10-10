@@ -33,7 +33,7 @@ import('../server.js').then(async () => {
 
   // 4. Test Security Headers (Helmet)
   console.log('\n--- 3. Testing Helmet Security Headers ---');
-  console.log('CSP Header:', metRes.headers.get('content-security-policy') ? 'Active ✅' : 'Missing ❌');
+  console.log('CSP Header:', metRes.headers.get('content-security-policy') ? 'Active ' : 'Missing ');
   console.log('X-Content-Type-Options:', metRes.headers.get('x-content-type-options'));
 
   // 5. Test Rate Limiting Headers
@@ -53,6 +53,6 @@ import('../server.js').then(async () => {
   console.log('Oversized payload status:', largeRes.status, '(Expected: 413)');
   console.log('Oversized error response:', largeData);
 
-  console.log('\n🎉 ALL PHASE 4 HARDENING & SECURITY CHECKS PASSED!');
+  console.log('\n ALL PHASE 4 HARDENING & SECURITY CHECKS PASSED!');
   process.exit(0);
 });

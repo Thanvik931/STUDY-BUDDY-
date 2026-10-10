@@ -58,7 +58,7 @@ async function runAutocannon(opts) {
 
 // Safety check before running
 async function verifySafety(baseUrl) {
-  console.log(`🔍 Checking server health and safety at ${baseUrl}/api/health...`);
+  console.log(` Checking server health and safety at ${baseUrl}/api/health...`);
   let health;
   try {
     const res = await fetch(`${baseUrl}/api/health`);
@@ -81,12 +81,12 @@ async function verifySafety(baseUrl) {
     throw new Error(`SAFETY ABORT: Target "${baseUrl}" is not localhost and STRESS_TARGET was not set explicitly.`);
   }
 
-  console.log(`✅ Safety verified: Target is ${baseUrl}, STRESS_MODE=true active.`);
+  console.log(` Safety verified: Target is ${baseUrl}, STRESS_MODE=true active.`);
 }
 
 // Provision test students in MongoDB
 async function provisionTestStudents(db) {
-  console.log('👥 Creating 20 test students (stress_student_1..20)...');
+  console.log(' Creating 20 test students (stress_student_1..20)...');
   const now = new Date();
   const students = [];
   for (let i = 1; i <= 20; i++) {
@@ -131,7 +131,7 @@ async function provisionTestStudents(db) {
 
 // Clean up all stress data in MongoDB
 async function cleanupTestData(db, baseUrl) {
-  console.log('\n🧹 Cleaning up test students and stress data from database...');
+  console.log('\n Cleaning up test students and stress data from database...');
   try {
     if (db) {
       await db.collection('students').deleteMany({ _id: { $regex: '^stress_' } });
@@ -141,7 +141,7 @@ async function cleanupTestData(db, baseUrl) {
       await db.collection('questions').deleteMany({ ownerId: { $regex: '^stress_' } });
     }
     await fetch(`${baseUrl}/api/stress/reset`, { method: 'POST' }).catch(() => {});
-    console.log('✅ Cleanup complete: all stress student records removed.');
+    console.log(' Cleanup complete: all stress student records removed.');
   } catch (err) {
     console.warn('Warning during cleanup:', err.message);
   }
@@ -739,13 +739,13 @@ async function main() {
     // WRITE OUTPUT TO docs/stress-test-results.md
     // ========================================================================
     generateMarkdownReport(reportData, overallPass);
-    console.log(`\n📄 Report generated successfully at: docs/stress-test-results.md`);
+    console.log(`\n Report generated successfully at: docs/stress-test-results.md`);
 
     if (!overallPass) {
-      console.error('\n❌ STRESS TEST FAILED: One or more pass criteria were violated.');
+      console.error('\n STRESS TEST FAILED: One or more pass criteria were violated.');
       process.exit(1);
     } else {
-      console.log('\n🎉 ALL STRESS TEST SCENARIOS PASSED SUCCESSFULLY!');
+      console.log('\n ALL STRESS TEST SCENARIOS PASSED SUCCESSFULLY!');
     }
   } finally {
     await cleanupTestData(db, baseUrl);
@@ -761,7 +761,7 @@ function generateMarkdownReport(data, overallPass) {
   let md = `# Study Buddy - Section 11B Stress Test and Resilience Report\n\n`;
   md += `> **Automated Benchmark and Resilience Evaluation**\n`;
   md += `> Generated on: \`${data.date}\`\n`;
-  md += `> Status: **${overallPass ? 'ALL CRITERIA PASSED ✅' : 'FAILURES DETECTED ❌'}**\n\n`;
+  md += `> Status: **${overallPass ? 'ALL CRITERIA PASSED ' : 'FAILURES DETECTED '}**\n\n`;
 
   md += `## 1. System & Test Environment\n\n`;
   md += `| Attribute | Details |\n`;

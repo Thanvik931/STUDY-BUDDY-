@@ -272,14 +272,14 @@ router.post('/tutor/study-plan', requireUser, csrfProtection, async (req, res, n
     // AI Tutor's Recommended Action Checklist
     const actionChecklist = [];
     if (criticalList.length > 0) {
-      actionChecklist.push(`🚨 Priority 1: Master ${criticalList[0].label} — review concept lesson and take 10-question quiz.`);
+      actionChecklist.push(`Priority 1: Master ${criticalList[0].label} — review concept lesson and take 10-question quiz.`);
     }
     if (criticalList.length > 1) {
-      actionChecklist.push(`🚨 Priority 2: Clear misconceptions on ${criticalList[1].label}.`);
+      actionChecklist.push(`Priority 2: Clear misconceptions on ${criticalList[1].label}.`);
     } else if (unexploredList.length > 0) {
-      actionChecklist.push(`⚡ Priority 2: Explore foundational topic ${unexploredList[0].label}.`);
+      actionChecklist.push(`Priority 2: Explore foundational topic ${unexploredList[0].label}.`);
     }
-    actionChecklist.push('🗂️ Daily Habit: Flip 5 active recall flashcards before your study session.');
+    actionChecklist.push('Daily Habit: Flip 5 active recall flashcards before your study session.');
     actionChecklist.push('⏱️ Weekend Milestone: Complete a 15-question Timed Mock Exam.');
 
     res.status(200).json({

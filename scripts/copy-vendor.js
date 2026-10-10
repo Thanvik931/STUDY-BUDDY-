@@ -20,10 +20,10 @@ try {
       fs.mkdirSync(vendorDir, { recursive: true });
     }
     fs.copyFileSync(srcChart, destChart);
-    console.log('✅ Self-hosted vendor assets copied: public/vendor/chart.umd.js');
+    console.log(' Self-hosted vendor assets copied: public/vendor/chart.umd.js');
   } else {
-    console.warn('⚠️ Chart.js dist file not found in node_modules.');
+    console.warn('️ Chart.js dist file not found in node_modules.');
   }
 } catch (err) {
-  console.error('❌ Failed to copy vendor assets:', err.message);
+  console.error(' Failed to copy vendor assets:', err.message);
 }

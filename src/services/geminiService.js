@@ -118,11 +118,11 @@ Return ONLY a JSON object with this exact structure:
   if (studentStats.totalAttempts === 0) {
     diagnosisText = `Initial Assessment: You have not attempted questions on ${topicLabel} yet. Review this lesson thoroughly before testing your knowledge on the 10-Question Quiz.`;
   } else if (studentStats.accuracyPercent < 50) {
-    diagnosisText = `⚠️ Critical Weakness Diagnosed: Your historical pass rate is ${studentStats.accuracyPercent}% (${studentStats.passedCount} passed, ${studentStats.failedCount} failed out of ${studentStats.totalAttempts} attempts). Your errors stem from confusing core invariants and falling for subtle distractor options. Focus intensely on Section 3 (Common Traps) below.`;
+    diagnosisText = `Critical Weakness Diagnosed: Your historical pass rate is ${studentStats.accuracyPercent}% (${studentStats.passedCount} passed, ${studentStats.failedCount} failed out of ${studentStats.totalAttempts} attempts). Your errors stem from confusing core invariants and falling for subtle distractor options. Focus intensely on Section 3 (Common Traps) below.`;
   } else if (studentStats.accuracyPercent < 80) {
-    diagnosisText = `🔄 Moderate Mastery: Your pass rate is ${studentStats.accuracyPercent}% (${studentStats.passedCount} passed, ${studentStats.failedCount} failed). You have solid foundational knowledge, but edge cases in high-stress questions still trip you up. Pay close attention to the Worked Code and Invariants in Section 2 & 4.`;
+    diagnosisText = `Moderate Mastery: Your pass rate is ${studentStats.accuracyPercent}% (${studentStats.passedCount} passed, ${studentStats.failedCount} failed). You have solid foundational knowledge, but edge cases in high-stress questions still trip you up. Pay close attention to the Worked Code and Invariants in Section 2 & 4.`;
   } else {
-    diagnosisText = `🌟 High Mastery (${studentStats.accuracyPercent}% Accuracy): You have passed ${studentStats.passedCount} of ${studentStats.totalAttempts} attempts! Use this deep breakdown to reinforce theoretical proofs and optimize your mental model for competitive and university examinations.`;
+    diagnosisText = `High Mastery (${studentStats.accuracyPercent}% Accuracy): You have passed ${studentStats.passedCount} of ${studentStats.totalAttempts} attempts! Use this deep breakdown to reinforce theoretical proofs and optimize your mental model for competitive and university examinations.`;
   }
 
   if (weakMemory) {

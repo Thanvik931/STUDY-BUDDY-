@@ -30,7 +30,7 @@ try {
     }
   }
 } catch (err) {
-  console.warn('⚠️ Could not load data/common-passwords.txt:', err.message);
+  console.warn('️ Could not load data/common-passwords.txt:', err.message);
 }
 
 // Scrypt configuration fallback (Rule 13.4)

@@ -87,7 +87,7 @@ async function main() {
     timestamp: now
   });
 
-  console.log(`✅ Password successfully reset for "${username}". Invalidated ${deleteSessionsResult.deletedCount} existing sessions.`);
+  console.log(` Password successfully reset for "${username}". Invalidated ${deleteSessionsResult.deletedCount} existing sessions.`);
   await closeDB();
 }
 

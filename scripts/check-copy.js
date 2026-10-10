@@ -26,7 +26,7 @@ htmlFiles.forEach((file) => {
 
   FORBIDDEN_WORDS.forEach((word) => {
     if (visibleText.includes(word)) {
-      console.log(`❌ [FLAG] ${file} contains placeholder copy: "${word}"`);
+      console.log(` [FLAG] ${file} contains placeholder copy: "${word}"`);
       violations++;
     }
   });

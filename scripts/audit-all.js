@@ -20,10 +20,10 @@ function runStep(name, command) {
   console.log(`\n▶ Running: ${name} (${command})...`);
   try {
     const output = execSync(command, { cwd: rootDir, stdio: 'pipe' }).toString();
-    console.log(`  ✓ ${name} PASSED.`);
+    console.log(`   ${name} PASSED.`);
     return { name, status: 'PASS', output: output.trim() };
   } catch (err) {
-    console.log(`  ✗ ${name} reported issues.`);
+    console.log(`   ${name} reported issues.`);
     const errOutput = (err.stdout ? err.stdout.toString() : '') + (err.stderr ? err.stderr.toString() : '');
     return { name, status: 'ATTENTION', output: errOutput.trim() };
   }
@@ -51,7 +51,7 @@ try {
 
 const timestamp = new Date().toISOString();
 
-const auditDoc = `# 🛡️ Study Buddy — Comprehensive Launch Security & Readiness Audit
+const auditDoc = `# ️ Study Buddy — Comprehensive Launch Security & Readiness Audit
 **Audit Date:** \`${timestamp}\`  
 **Git Commit:** \`${commitHash}\`  
 **Environment:** \`Node.js ${process.version}\` on Windows
@@ -87,10 +87,10 @@ ${r.output.substring(0, 800)}${r.output.length > 800 ? '\n... [truncated for rep
 
 ## 3. Manual Verification Checklist Reference
 For items requiring human administrative review (e.g. MongoDB Atlas Network Access IP Whitelisting, production key rotation), refer to:
-👉 \`docs/manual-security-checklist.md\`
+ \`docs/manual-security-checklist.md\`
 `;
 
 fs.writeFileSync(path.join(docsDir, 'security-audit.md'), auditDoc, 'utf-8');
 console.log('\n========================================================================');
-console.log('✅ AUDIT COMPLETE. Report saved to docs/security-audit.md');
+console.log(' AUDIT COMPLETE. Report saved to docs/security-audit.md');
 console.log('========================================================================\n');

@@ -2,7 +2,7 @@
 
 > **Automated Benchmark and Resilience Evaluation**
 > Generated on: `2026-10-10T13:52:35.777Z`
-> Status: **FAILURES DETECTED ❌**
+> Status: **FAILURES DETECTED **
 
 ## 1. System & Test Environment
 

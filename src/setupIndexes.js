@@ -16,22 +16,22 @@ async function applyCollectionValidator(db, collectionName, validatorDoc) {
         validator: validatorDoc,
         validationLevel: 'strict'
       });
-      console.log(`✅ Created collection "${collectionName}" with strict $jsonSchema validation.`);
+      console.log(` Created collection "${collectionName}" with strict $jsonSchema validation.`);
     } else {
       await db.command({
         collMod: collectionName,
         validator: validatorDoc,
         validationLevel: 'strict'
       });
-      console.log(`✅ Updated collection "${collectionName}" with strict $jsonSchema validation.`);
+      console.log(` Updated collection "${collectionName}" with strict $jsonSchema validation.`);
     }
   } catch (err) {
-    console.warn(`⚠️ Warning setting validator on "${collectionName}": ${err.message}`);
+    console.warn(`️ Warning setting validator on "${collectionName}": ${err.message}`);
   }
 }
 
 export async function setupAll() {
-  console.log('🚀 Running MongoDB setup for Study Buddy...');
+  console.log(' Running MongoDB setup for Study Buddy...');
   const db = await connectDB();
 
   try {
@@ -48,7 +48,7 @@ export async function setupAll() {
           await applyCollectionValidator(db, 'attempts', attemptsSchema);
         } else {
           await db.createCollection(name);
-          console.log(`✅ Created collection "${name}".`);
+          console.log(` Created collection "${name}".`);
         }
       } else {
         if (name === 'memories') {
@@ -60,14 +60,14 @@ export async function setupAll() {
     }
 
     // 2. Indexes for 'users' collection (Rule 13.4, 13.10)
-    console.log('⚡ Creating indexes on "users"...');
+    console.log(' Creating indexes on "users"...');
     await db.collection('users').createIndex(
       { usernameLower: 1 },
       { unique: true, name: 'users_unique_username_lower_idx' }
     );
 
     // 3. Indexes for 'sessions' collection (Rule 13.4, 13.10)
-    console.log('⚡ Creating indexes on "sessions"...');
+    console.log(' Creating indexes on "sessions"...');
     await db.collection('sessions').createIndex(
       { tokenHash: 1 },
       { unique: true, name: 'sessions_unique_token_hash_idx' }
@@ -82,7 +82,7 @@ export async function setupAll() {
     );
 
     // 4. Indexes for 'admin_audit' collection (Rule 13.4)
-    console.log('⚡ Creating indexes on "admin_audit"...');
+    console.log(' Creating indexes on "admin_audit"...');
     await db.collection('admin_audit').createIndex(
       { timestamp: 1 },
       { expireAfterSeconds: 7776000, name: 'admin_audit_90d_ttl_idx' } // 90-day retention
@@ -93,7 +93,7 @@ export async function setupAll() {
     );
 
     // 5. Indexes for 'memories' collection
-    console.log('⚡ Creating indexes on "memories"...');
+    console.log(' Creating indexes on "memories"...');
     // Compound index for instant student-scoped queries
     await db.collection('memories').createIndex(
       { ownerId: 1, status: 1, subject: 1, topic: 1 },
@@ -133,7 +133,7 @@ export async function setupAll() {
     );
 
     // 3. Indexes for 'topic_stats' collection
-    console.log('⚡ Creating indexes on "topic_stats"...');
+    console.log(' Creating indexes on "topic_stats"...');
     // Unique compound index: one stats document per student per topic
     await db.collection('topic_stats').createIndex(
       { ownerId: 1, subject: 1, topic: 1 },
@@ -141,7 +141,7 @@ export async function setupAll() {
     );
 
     // 4. Indexes for 'attempts' collection
-    console.log('⚡ Creating indexes on "attempts"...');
+    console.log(' Creating indexes on "attempts"...');
     // Fast chronological history of student quiz attempts
     await db.collection('attempts').createIndex(
       { ownerId: 1, createdAt: -1 },
@@ -149,7 +149,7 @@ export async function setupAll() {
     );
 
     // 5. Indexes for 'questions' collection
-    console.log('⚡ Creating indexes on "questions"...');
+    console.log(' Creating indexes on "questions"...');
     // TTL index: un-answered generated questions auto-expire after 24 hours (86400 seconds)
     await db.collection('questions').createIndex(
       { createdAt: 1 },
@@ -157,7 +157,7 @@ export async function setupAll() {
     );
 
     // 6. Atlas Vector Search index on 'memories'
-    console.log('🔍 Setting up Atlas Vector Search index ("memory_vector_index")...');
+    console.log(' Setting up Atlas Vector Search index ("memory_vector_index")...');
     const vectorIndexDefinition = {
       name: 'memory_vector_index',
       type: 'vectorSearch',
@@ -180,7 +180,7 @@ export async function setupAll() {
     try {
       if (typeof db.collection('memories').createSearchIndex === 'function') {
         await db.collection('memories').createSearchIndex(vectorIndexDefinition);
-        console.log('✅ Atlas Vector Search index "memory_vector_index" created successfully via driver API.');
+        console.log(' Atlas Vector Search index "memory_vector_index" created successfully via driver API.');
       } else {
         throw new Error('createSearchIndex method not available on this driver/cluster version.');
       }
@@ -196,7 +196,7 @@ export async function setupAll() {
       console.log('-----------------------------------------------------\n');
     }
 
-    console.log('🎉 MongoDB setup completed successfully!');
+    console.log(' MongoDB setup completed successfully!');
   } finally {
     await closeDB();
   }

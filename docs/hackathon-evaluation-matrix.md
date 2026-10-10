@@ -46,15 +46,15 @@ Study Buddy provides a complete pedagogical loop without broken states or mock s
 
 ### 1.2 Nine Fully Functional Interactive Features
 Every feature is accessible via the persistent Left Navigation Sidebar:
-1. **💬 Socratic AI Tutor (`#tab-tutor`):** Multi-turn conversational tutor offering 4 pedagogical personas (*Socratic Mentor*, *ELI5 Novice*, *Exam Proofs*, *Code Debugger*) and Web Speech API speech synthesis.
-2. **🎯 Adaptive Quiz Engine (`#tab-quiz`):** Dynamic 10-question test generation tailored to the student's mastery level, complete with distractor rationale and instant feedback.
-3. **📚 Interactive Lessons (`#tab-lessons`):** Auto-generated pedagogical modules with mental models, real-world analogies, step-by-step mechanics, common pitfalls, and code/SQL examples.
-4. **🗂️ Active Recall Flashcards (`#tab-flashcards`):** Dual-mode card deck (interactive 3D practice deck and responsive grid), Leitner spaced repetition ratings (`Again`, `Hard`, `Good`, `Easy`), keyboard shortcuts (`Space`, `←`, `→`, `1-4`), and keyword search.
-5. **📝 Timed Mock Exam Simulator (`#tab-mockexam`):** 15-minute high-stakes exam environment simulating university CS finals with question palettes, time countdown, and post-exam diagnostic review.
-6. **📅 AI Study Planner (`#tab-studyplan`):** Algorithmic study roadmap with an exam readiness score, subject coverage breakdown, and prioritised topics categorized as *Critical Focus*, *Reinforce*, and *Mastered*.
-7. **⚡ Quick Revision Cheat Sheets (`#tab-cheatsheet`):** High-density rapid revision sheets covering ACID guarantees, B+ Tree branching, SQL isolation levels, CPU scheduling, and virtual memory paging.
-8. **🧠 Cognitive Memory Inspector (`#tab-memories`):** Transparent view into the student's long-term memory documents stored in MongoDB Atlas, allowing manual misconception corrections and full auditability.
-9. **📈 Multi-Stage Progress Analytics (`#tab-progress`):** Four live Chart.js visualizations driven by MongoDB `$facet` aggregation pipelines.
+1. ** Socratic AI Tutor (`#tab-tutor`):** Multi-turn conversational tutor offering 4 pedagogical personas (*Socratic Mentor*, *ELI5 Novice*, *Exam Proofs*, *Code Debugger*) and Web Speech API speech synthesis.
+2. ** Adaptive Quiz Engine (`#tab-quiz`):** Dynamic 10-question test generation tailored to the student's mastery level, complete with distractor rationale and instant feedback.
+3. ** Interactive Lessons (`#tab-lessons`):** Auto-generated pedagogical modules with mental models, real-world analogies, step-by-step mechanics, common pitfalls, and code/SQL examples.
+4. **️ Active Recall Flashcards (`#tab-flashcards`):** Dual-mode card deck (interactive 3D practice deck and responsive grid), Leitner spaced repetition ratings (`Again`, `Hard`, `Good`, `Easy`), keyboard shortcuts (`Space`, `←`, `→`, `1-4`), and keyword search.
+5. ** Timed Mock Exam Simulator (`#tab-mockexam`):** 15-minute high-stakes exam environment simulating university CS finals with question palettes, time countdown, and post-exam diagnostic review.
+6. ** AI Study Planner (`#tab-studyplan`):** Algorithmic study roadmap with an exam readiness score, subject coverage breakdown, and prioritised topics categorized as *Critical Focus*, *Reinforce*, and *Mastered*.
+7. ** Quick Revision Cheat Sheets (`#tab-cheatsheet`):** High-density rapid revision sheets covering ACID guarantees, B+ Tree branching, SQL isolation levels, CPU scheduling, and virtual memory paging.
+8. ** Cognitive Memory Inspector (`#tab-memories`):** Transparent view into the student's long-term memory documents stored in MongoDB Atlas, allowing manual misconception corrections and full auditability.
+9. ** Multi-Stage Progress Analytics (`#tab-progress`):** Four live Chart.js visualizations driven by MongoDB `$facet` aggregation pipelines.
 
 ---
 
@@ -192,15 +192,15 @@ Study Buddy respects full data privacy:
 ### 6.1 Instant Evaluator Quick Demo
 Judges can evaluate the full application in under 30 seconds without creating throwaway email accounts:
 1. Open `http://localhost:3000`
-2. Click **"🚀 1-Click Judge Demo (Evaluator Ravi Kumar)"**
+2. Click **" 1-Click Judge Demo (Evaluator Ravi Kumar)"**
 3. The application immediately mounts an active authenticated session populated with realistic historical quiz attempts, weak topics (B+ Trees & CPU Scheduling), and cognitive memory graphs.
 
 ### 6.2 Responsive Left Navigation Sidebar
 The interface incorporates a clean Left Sidebar design with:
-- Persistent brand identity and real-time MongoDB Atlas sync indicator (`🟢 Atlas Memory Sync`).
+- Persistent brand identity and real-time MongoDB Atlas sync indicator (` Atlas Memory Sync`).
 - 9 dedicated navigation destinations with badge counts.
 - Mobile slide-out drawer with gesture support.
-- Top action bar featuring the dedicated **"🏆 Hackathon Rubric"** matrix modal.
+- Top action bar featuring the dedicated **" Hackathon Rubric"** matrix modal.
 
 ---
 

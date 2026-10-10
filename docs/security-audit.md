@@ -1,6 +1,6 @@
-# 🛡️ Study Buddy — Comprehensive Launch Security & Readiness Audit
-**Audit Date:** `2026-10-10T20:47:29.735Z`  
-**Git Commit:** `05f3b74`  
+# ️ Study Buddy — Comprehensive Launch Security & Readiness Audit
+**Audit Date:** `2026-10-10T21:30:55.153Z`  
+**Git Commit:** `fdacb03`  
 **Environment:** `Node.js v22.19.0` on Windows
 
 ---
@@ -54,16 +54,15 @@ This document provides an automated assessment of the Study Buddy platform again
   SECRET & CREDENTIAL SCAN (Rule 13.3)
 ========================================================================
 
-• Working Tree Scan: 0 suspicious pattern(s) found.
-  [PASS] Clean. No plaintext credentials found in working tree.
+• Working Tree Scan: 1 suspicious pattern(s) found.
+  - [FLAG] docs\deployment-guide.md (MongoDB Embedded Credential): mongod****et
 
-• Git History Scan: 4 suspicious pattern(s) found.
+• Git History Scan: 5 suspicious pattern(s) found.
   - [FLAG] Commit history contains: MongoDB Embedded Credential -> mongod****et
   - [FLAG] Commit history contains: MongoDB Embedded Credential -> mongod****et
   - [FLAG] Commit history contains: MongoDB Embedded Credential -> mongod****et
   - [FLAG] Commit history contains: MongoDB Embedded Credential -> mongod****et
-
-============================================================
+  - [FLAG] Commit history contains: MongoDB E
 ... [truncated for report readability]
 ```
 
@@ -150,18 +149,18 @@ TOKEN AUDIT: ALL CHECKS PASSED (Zero raw unrendered {{TOKENS}})
 > node --test tests/**/*.test.js
 
 TAP version 13
-# ✅ Connected to MongoDB Atlas database: "study_buddy_db" (Pool: 50, Stress mode: false)
+#  Connected to MongoDB Atlas database: "study_buddy_db" (Pool: 50, Stress mode: false)
 # Subtest: Phase 2 Core Loop: Session ownerId, account export & deletion
     # Subtest: 1. Verified user lookup never leaks passwordHash
     ok 1 - 1. Verified user lookup never leaks passwordHash
       ---
-      duration_ms: 73.2728
+      duration_ms: 49.6058
       type: 'test'
       ...
     # Subtest: 2. Account data export includes all student data and omits embeddings/tokenHashes
     ok 2 - 2. Account data export includes all student data and omits embeddings/tokenHashes
       ---
-      duration_ms: 409.632
+      duration_ms: 160.3491
       type: 'test'
       ...
     # Subtest: 3. Account deletion with incorrect password fails and leaves data intact
@@ -198,4 +197,4 @@ To address all issues (including breaking changes), run:
 
 ## 3. Manual Verification Checklist Reference
 For items requiring human administrative review (e.g. MongoDB Atlas Network Access IP Whitelisting, production key rotation), refer to:
-👉 `docs/manual-security-checklist.md`
+ `docs/manual-security-checklist.md`

@@ -562,15 +562,15 @@ function switchTab(tabId) {
   tabPanels.forEach((p) => p.classList.toggle('active', p.id === `tab-${tabId}`));
 
   const sectionTitles = {
-    tutor: '💬 1-on-1 Socratic AI Tutor',
-    quiz: '🎯 Adaptive Quiz (10-Question Master Set)',
-    lessons: '📖 Concept Lessons & Engineering Deep Dives',
-    flashcards: '🗂️ Spaced Repetition & Active Recall Flashcards',
+    tutor: '1-on-1 Socratic AI Tutor',
+    quiz: 'Adaptive Quiz (10-Question Master Set)',
+    lessons: 'Concept Lessons & Engineering Deep Dives',
+    flashcards: 'Spaced Repetition & Active Recall Flashcards',
     mockexam: '⏱️ Timed Mock Exam Simulator (15 Questions)',
-    studyplan: '📅 AI Study Planner & Readiness Roadmap',
-    cheatsheet: '📄 High-Yield Revision Cheat Sheets',
-    memories: '🧠 MongoDB Cognitive Memory Inspector',
-    progress: '📊 Real-Time Analytics & Radar Insights'
+    studyplan: 'AI Study Planner & Readiness Roadmap',
+    cheatsheet: 'High-Yield Revision Cheat Sheets',
+    memories: 'MongoDB Cognitive Memory Inspector',
+    progress: 'Real-Time Analytics & Radar Insights'
   };
   if (topHeaderTitle && sectionTitles[tabId]) {
     topHeaderTitle.textContent = sectionTitles[tabId];
@@ -691,7 +691,7 @@ async function handleTutorChatSubmit(e) {
     lastTutorReplyText = res.reply;
     appendChatBubble('tutor', res.reply, res.followUp);
   } catch (err) {
-    appendChatBubble('tutor', `⚠️ Error: ${err.message}`);
+    appendChatBubble('tutor', `Error: ${err.message}`);
   } finally {
     tutorChatSubmit.disabled = false;
   }
@@ -705,7 +705,7 @@ function appendChatBubble(role, text, followUp = null) {
   if (followUp && role === 'tutor') {
     const fuBox = document.createElement('div');
     fuBox.className = 'follow-up-callout';
-    fuBox.textContent = `💡 Socratic Question for you: ${followUp}`;
+    fuBox.textContent = `Socratic Question for you: ${followUp}`;
     bubble.appendChild(fuBox);
   }
 
@@ -769,7 +769,7 @@ async function start10QuestionQuiz() {
     alert(`Failed to generate quiz: ${err.message}`);
   } finally {
     startBatchQuizBtn.disabled = false;
-    startBatchQuizBtn.textContent = '🚀 Start 10-Question Quiz';
+    startBatchQuizBtn.textContent = 'Start 10-Question Quiz';
   }
 }
 
@@ -795,7 +795,7 @@ async function startSingleQuestion() {
     alert(`Failed to fetch question: ${err.message}`);
   } finally {
     fetchSingleQuestionBtn.disabled = false;
-    fetchSingleQuestionBtn.textContent = '⚡ Single Question';
+    fetchSingleQuestionBtn.textContent = 'Single Question';
   }
 }
 
@@ -890,7 +890,7 @@ async function submitAnswer() {
     feedbackBox.innerHTML = '';
 
     const titleEl = document.createElement('strong');
-    titleEl.textContent = result.correct ? '✅ Correct! ' : '❌ Incorrect. ';
+    titleEl.textContent = result.correct ? 'Correct! ' : 'Incorrect. ';
     feedbackBox.appendChild(titleEl);
 
     const explEl = document.createElement('p');
@@ -935,11 +935,11 @@ function showQuizSummary() {
   summaryScoreValue.textContent = `${quizScore} / ${total} (${pct}%)`;
 
   if (pct >= 80) {
-    summaryMemoryImpact.textContent = '🌟 Outstanding performance! Your demonstrated mastery has been stored as Strength memories in MongoDB Atlas.';
+    summaryMemoryImpact.textContent = 'Outstanding performance! Your demonstrated mastery has been stored as Strength memories in MongoDB Atlas.';
   } else if (pct >= 50) {
-    summaryMemoryImpact.textContent = '👍 Solid attempt. Weaknesses on missed topics were diagnosed into MongoDB Agentic Memory to guide future learning.';
+    summaryMemoryImpact.textContent = 'Solid attempt. Weaknesses on missed topics were diagnosed into MongoDB Agentic Memory to guide future learning.';
   } else {
-    summaryMemoryImpact.textContent = '⚠️ Tricky concepts identified. Cognitive memory has recorded active weaknesses so the AI Tutor can teach you these topics!';
+    summaryMemoryImpact.textContent = 'Tricky concepts identified. Cognitive memory has recorded active weaknesses so the AI Tutor can teach you these topics!';
   }
 }
 
@@ -959,7 +959,7 @@ async function loadRecommendedLessons() {
       const chip = document.createElement('button');
       chip.className = 'lesson-chip';
       const statsSnippet = rec.stats ? ` [${rec.stats}]` : '';
-      chip.textContent = `🎯 ${rec.title}${statsSnippet}`;
+      chip.textContent = `${rec.title}${statsSnippet}`;
       chip.title = rec.reason;
 
       chip.addEventListener('click', () => {
@@ -1011,18 +1011,18 @@ async function teachConcept(subject, topic) {
     lessonCardView.scrollIntoView({ behavior: 'smooth' });
 
     const stats = lesson.studentStats || { totalAttempts: 0, passedCount: 0, failedCount: 0, accuracyPercent: 0 };
-    lessonStatAttempts.textContent = `📊 ${stats.totalAttempts} Attempted`;
-    lessonStatPassed.textContent = `✅ ${stats.passedCount} Passed`;
-    lessonStatFailed.textContent = `❌ ${stats.failedCount} Failed`;
-    lessonStatRate.textContent = `🎯 ${stats.accuracyPercent}% Accuracy`;
+    lessonStatAttempts.textContent = `${stats.totalAttempts} Attempted`;
+    lessonStatPassed.textContent = `${stats.passedCount} Passed`;
+    lessonStatFailed.textContent = `${stats.failedCount} Failed`;
+    lessonStatRate.textContent = `${stats.accuracyPercent}% Accuracy`;
 
     if (lesson.aiProvider === 'gemini') {
-      lessonAiBadge.textContent = '🤖 Gemini 2.5 AI Engine (Live)';
+      lessonAiBadge.textContent = 'Gemini 2.5 AI Engine (Live)';
       lessonAiBadge.style.backgroundColor = '#DCFCE7';
       lessonAiBadge.style.color = '#166534';
       lessonAiBadge.style.borderColor = '#86EFAC';
     } else {
-      lessonAiBadge.textContent = '🤖 Gemini AI (Adaptive Cognitive Engine)';
+      lessonAiBadge.textContent = 'Gemini AI (Adaptive Cognitive Engine)';
       lessonAiBadge.style.backgroundColor = '#F3E8FF';
       lessonAiBadge.style.color = '#6B21A8';
       lessonAiBadge.style.borderColor = '#D8B4FE';
@@ -1030,7 +1030,7 @@ async function teachConcept(subject, topic) {
 
     if (lesson.diagnosis || lesson.studentDiagnosis) {
       lessonDiagnosisBox.style.display = 'block';
-      lessonDiagnosisBox.textContent = `🧠 ${lesson.diagnosis || lesson.studentDiagnosis}`;
+      lessonDiagnosisBox.textContent = `${lesson.diagnosis || lesson.studentDiagnosis}`;
     } else {
       lessonDiagnosisBox.style.display = 'none';
     }
@@ -1060,7 +1060,7 @@ async function teachConcept(subject, topic) {
     alert(`Failed to load concept lesson: ${err.message}`);
   } finally {
     loadLessonBtn.disabled = false;
-    loadLessonBtn.textContent = '📖 Teach This Concept';
+    loadLessonBtn.textContent = 'Teach This Concept';
   }
 }
 
@@ -1279,7 +1279,7 @@ function renderFlashcardsGrid(cards) {
     if (card.examTip) {
       const tipEl = document.createElement('div');
       tipEl.className = 'flashcard-trap-box';
-      tipEl.textContent = `⚠️ Exam Trap: ${card.examTip}`;
+      tipEl.textContent = `Exam Trap: ${card.examTip}`;
       solContainer.appendChild(tipEl);
     }
 
@@ -1292,10 +1292,10 @@ function renderFlashcardsGrid(cards) {
     ratingRow.style.marginBottom = '0.4rem';
 
     const ratingOptions = [
-      { id: 'again', label: '🔴 Again', tip: '<1m' },
-      { id: 'hard', label: '🟠 Hard', tip: '1d' },
-      { id: 'good', label: '🔵 Good', tip: '3d' },
-      { id: 'easy', label: '🟢 Easy', tip: '7d' }
+      { id: 'again', label: 'Again', tip: '<1m' },
+      { id: 'hard', label: 'Hard', tip: '1d' },
+      { id: 'good', label: 'Good', tip: '3d' },
+      { id: 'easy', label: 'Easy', tip: '7d' }
     ];
 
     ratingOptions.forEach((ro) => {
@@ -1322,19 +1322,19 @@ function renderFlashcardsGrid(cards) {
     flipBtn.style.fontSize = '0.8rem';
     flipBtn.style.color = 'var(--primary-dark)';
     flipBtn.style.borderColor = 'var(--primary-dark)';
-    flipBtn.textContent = areAllCardsFlipped ? '🔒 Hide Solution' : '🔄 Reveal Solution';
+    flipBtn.textContent = areAllCardsFlipped ? 'Hide Solution' : 'Reveal Solution';
 
     flipBtn.addEventListener('click', () => {
       const isVisible = solContainer.style.display !== 'none';
       solContainer.style.display = isVisible ? 'none' : 'block';
-      flipBtn.textContent = isVisible ? '🔄 Reveal Solution' : '🔒 Hide Solution';
+      flipBtn.textContent = isVisible ? 'Reveal Solution' : 'Hide Solution';
     });
 
     const voiceBtn = document.createElement('button');
     voiceBtn.className = 'btn-speech';
     voiceBtn.style.fontSize = '0.75rem';
     voiceBtn.style.padding = '0.2rem 0.5rem';
-    voiceBtn.textContent = '🔊 Listen';
+    voiceBtn.textContent = 'Listen';
     voiceBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       speakText(`${card.front}. Answer: ${card.back}`);
@@ -1355,7 +1355,7 @@ function renderFlashcardsGrid(cards) {
 function toggleFlipAllCards() {
   areAllCardsFlipped = !areAllCardsFlipped;
   if (fcFlipAllBtn) {
-    fcFlipAllBtn.textContent = areAllCardsFlipped ? '🔒 Hide All' : '👁️ Flip All';
+    fcFlipAllBtn.textContent = areAllCardsFlipped ? 'Hide All' : 'Flip All';
   }
   renderFlashcardsGrid(activeFlashcards);
 }
@@ -1365,7 +1365,7 @@ async function handleRateSingleCard(card, rating, btn) {
     btn.disabled = true;
     await api.rateFlashcard(card.id, rating, card.topic, card.subject);
     const orig = btn.textContent;
-    btn.textContent = '✅ Saved';
+    btn.textContent = 'Saved';
     setTimeout(() => {
       btn.textContent = orig;
       btn.disabled = false;
@@ -1414,7 +1414,7 @@ function renderCurrentFlashcard() {
       }
       if (card.examTip && fcTrapBox && fcTrapText) {
         fcTrapBox.style.display = 'block';
-        fcTrapText.textContent = `⚠️ Exam Trap: ${card.examTip}`;
+        fcTrapText.textContent = `Exam Trap: ${card.examTip}`;
       } else if (fcTrapBox) {
         fcTrapBox.style.display = 'none';
       }
@@ -1484,7 +1484,7 @@ async function handleRateFlashcard(rating) {
     if (currentFlashcardIndex < activeFlashcards.length - 1) {
       nextFlashcard();
     } else {
-      alert(`🎉 Flashcard set completed! Your recall ratings updated MongoDB Cognitive Memory.`);
+      alert(`Flashcard set completed! Your recall ratings updated MongoDB Cognitive Memory.`);
     }
   } catch (err) {
     alert(`Failed to save rating: ${err.message}`);
@@ -1515,7 +1515,7 @@ async function startMockExam() {
     alert(`Failed to start mock exam: ${err.message}`);
   } finally {
     startMockexamBtn.disabled = false;
-    startMockexamBtn.textContent = '🚀 Start 15-Minute Mock Exam';
+    startMockexamBtn.textContent = 'Start 15-Minute Mock Exam';
   }
 }
 
@@ -1630,7 +1630,7 @@ async function submitMockExamFinal() {
       const outcome = document.createElement('div');
       outcome.style.fontSize = '0.85rem';
       outcome.style.marginTop = '0.25rem';
-      outcome.textContent = `${d.correct ? '✅ Correct' : '❌ Incorrect'} | Topic: ${d.topic}`;
+      outcome.textContent = `${d.correct ? 'Correct' : 'Incorrect'} | Topic: ${d.topic}`;
       const expl = document.createElement('div');
       expl.style.fontSize = '0.82rem';
       expl.style.color = 'var(--text-muted)';
@@ -1675,7 +1675,7 @@ async function loadStudyPlan() {
     // Critical Priority
     spCriticalContainer.innerHTML = '';
     if ((data.criticalList || []).length === 0) {
-      spCriticalContainer.innerHTML = '<p style="font-size: 0.82rem; color: #166534;">🎉 Zero critical weaknesses detected!</p>';
+      spCriticalContainer.innerHTML = '<p style="font-size: 0.82rem; color: #166534;">Zero critical weaknesses detected.</p>';
     } else {
       data.criticalList.forEach((c) => {
         const box = document.createElement('div');
@@ -1701,7 +1701,7 @@ async function loadStudyPlan() {
       const box = document.createElement('div');
       box.style.borderLeftColor = '#166534';
       box.className = 'study-priority-card';
-      box.textContent = `✅ ${m.label} (${m.accuracy}% Accuracy)`;
+      box.textContent = `${m.label} (${m.accuracy}% Accuracy)`;
       spMasteredContainer.appendChild(box);
     });
   } catch (err) {
@@ -1792,14 +1792,14 @@ async function loadMemories() {
 
       const correctBtn = document.createElement('button');
       correctBtn.className = 'btn-outline';
-      correctBtn.textContent = '✏️ Correct';
+      correctBtn.textContent = 'Correct';
       correctBtn.onclick = () => openCorrectModal(mem._id, mem.content);
 
       const deleteBtn = document.createElement('button');
       deleteBtn.className = 'btn-outline';
       deleteBtn.style.borderColor = 'var(--accent-red)';
       deleteBtn.style.color = 'var(--accent-red)';
-      deleteBtn.textContent = '🗑️ Delete';
+      deleteBtn.textContent = 'Delete';
       deleteBtn.onclick = () => deleteMemory(mem._id);
 
       actions.appendChild(correctBtn);

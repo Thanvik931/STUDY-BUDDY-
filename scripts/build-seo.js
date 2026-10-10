@@ -20,7 +20,7 @@ Disallow: /api/
 Sitemap: ${siteUrl}/sitemap.xml
 `;
 fs.writeFileSync(path.join(publicDir, 'robots.txt'), robotsTxt, 'utf-8');
-console.log('✅ Generated public/robots.txt');
+console.log(' Generated public/robots.txt');
 
 // Generate sitemap.xml
 const now = new Date().toISOString().split('T')[0];
@@ -41,4 +41,4 @@ ${pages.map((p) => `  <url>
 `;
 
 fs.writeFileSync(path.join(publicDir, 'sitemap.xml'), sitemapXml, 'utf-8');
-console.log('✅ Generated public/sitemap.xml');
+console.log(' Generated public/sitemap.xml');

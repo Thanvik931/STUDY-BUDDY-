@@ -31,10 +31,10 @@ export async function connectDB() {
     
     // Quick ping command to verify cluster health
     await db.command({ ping: 1 });
-    console.log(`✅ Connected to MongoDB Atlas database: "${db.databaseName}" (Pool: ${env.MONGO_MAX_POOL}, Stress mode: ${env.STRESS_MODE})`);
+    console.log(` Connected to MongoDB Atlas database: "${db.databaseName}" (Pool: ${env.MONGO_MAX_POOL}, Stress mode: ${env.STRESS_MODE})`);
     return db;
   } catch (err) {
-    console.error('❌ Failed to connect to MongoDB Atlas:', err.message);
+    console.error(' Failed to connect to MongoDB Atlas:', err.message);
     throw err;
   }
 }
@@ -53,6 +53,6 @@ export async function closeDB() {
     await client.close();
     client = null;
     db = null;
-    console.log('🔌 Closed MongoDB connection.');
+    console.log(' Closed MongoDB connection.');
   }
 }

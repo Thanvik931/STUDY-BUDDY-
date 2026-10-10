@@ -1,4 +1,4 @@
-# 📋 Manual Security & Launch Checklist
+#  Manual Security & Launch Checklist
 **Study Buddy — Production Hardening Manual Verification (Rule 13.14)**
 
 This checklist details all actions that cannot be fully automated by code and require human operator verification in cloud dashboards.

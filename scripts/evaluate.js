@@ -3,7 +3,7 @@
 // WHY: Section 11 requirement. Evaluates how agentic memory adapts question targeting
 // and improves student recovery on hidden weak topics over 10 sessions of 10 questions.
 //
-// ⚠️ IMPORTANT NOTICE:
+// ️ IMPORTANT NOTICE:
 // "Simulation. It demonstrates the policy, not real learning gains."
 
 import { TOPICS } from '../src/config/topics.js';

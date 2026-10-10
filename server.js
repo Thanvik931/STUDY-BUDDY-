@@ -254,7 +254,7 @@ async function startServer() {
       logger.info(`Study Buddy server listening on http://localhost:${env.PORT}`);
       if (env.STRESS_MODE) {
         console.log('\n' + '!'.repeat(70));
-        console.log('⚠️⚠️⚠️  WARNING: SERVER IS RUNNING IN STRESS_MODE!  ⚠️⚠️⚠️');
+        console.log('WARNING: SERVER IS RUNNING IN STRESS_MODE!');
         console.log('   - External AI calls (Claude) are DISABLED; simulated question bank active.');
         console.log('   - Embeddings are deterministic fake vectors (no paid API calls).');
         console.log('   - Rate limiter bypass header "x-stress-bypass-limit: 1" is ACTIVE.');

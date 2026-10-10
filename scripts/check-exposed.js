@@ -26,14 +26,14 @@ function walk(dir) {
 
     if (ent.isDirectory()) {
       if (lowerName === '.git' || lowerName === 'node_modules') {
-        console.log(`❌ [FAIL] Exposed directory in public: ${ent.name}`);
+        console.log(` [FAIL] Exposed directory in public: ${ent.name}`);
         violations++;
       } else {
         walk(fullPath);
       }
     } else if (ent.isFile()) {
       if (FORBIDDEN_NAMES.includes(lowerName) || FORBIDDEN_EXTENSIONS.some((ext) => lowerName.endsWith(ext))) {
-        console.log(`❌ [FAIL] Forbidden file exposed in public: ${ent.name}`);
+        console.log(` [FAIL] Forbidden file exposed in public: ${ent.name}`);
         violations++;
       }
     }
@@ -52,6 +52,6 @@ if (violations === 0) {
   console.log('========================================================================\n');
   process.exit(0);
 } else {
-  console.log(`\n❌ Total violations found: ${violations}`);
+  console.log(`\n Total violations found: ${violations}`);
   process.exit(1);
 }

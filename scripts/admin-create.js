@@ -75,7 +75,7 @@ async function main() {
       { _id: existing._id },
       { $set: { role: 'admin', passwordHash, updatedAt: now } }
     );
-    console.log(`✅ Existing user "${username}" upgraded to role "admin".`);
+    console.log(` Existing user "${username}" upgraded to role "admin".`);
   } else {
     const newAdmin = {
       _id: new ObjectId(),
@@ -90,7 +90,7 @@ async function main() {
       lastLoginAt: null
     };
     await db.collection('users').insertOne(newAdmin);
-    console.log(`✅ Admin user "${username}" created successfully.`);
+    console.log(` Admin user "${username}" created successfully.`);
   }
 
   await db.collection('admin_audit').insertOne({
