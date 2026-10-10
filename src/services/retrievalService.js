@@ -14,11 +14,13 @@ export async function retrieveHybridMemories({ ownerId, subject, topic }) {
   const queryText = `${subject} ${topic}`;
 
   // 1. Generate query embedding (utilizes LRU cache in embeddingService)
-  let queryEmbedding;
+  let queryEmbedding = null;
+  let embeddingFailed = false;
   try {
     queryEmbedding = await getEmbedding(queryText);
   } catch (err) {
     console.warn('Embedding generation failed during retrieval, proceeding with exact match only:', err.message);
+    embeddingFailed = true;
   }
 
   // 2. Run both searches in parallel with Promise.all
@@ -155,5 +157,7 @@ export async function retrieveHybridMemories({ ownerId, subject, topic }) {
     ).catch((err) => console.warn('Failed to update lastUsedAt on memories:', err.message));
   }
 
+  topMemories.embeddingFailed = embeddingFailed;
+  topMemories.degraded = embeddingFailed;
   return topMemories;
 }

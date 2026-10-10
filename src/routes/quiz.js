@@ -45,13 +45,18 @@ router.post('/question', requireStudent, async (req, res, next) => {
 
     try {
       retrievedMemories = await retrieveHybridMemories({ ownerId, subject, topic });
+      if (retrievedMemories?.embeddingFailed || retrievedMemories?.degraded) {
+        retrievalFailed = true;
+      }
     } catch (err) {
       console.warn('Memory retrieval failed, continuing with no memories:', err.message);
       retrievalFailed = true;
     }
 
-    // 2. Select Difficulty based on retrieved memories
-    const difficulty = determineDifficulty(retrievedMemories, topic);
+    // 2. Select Difficulty based on retrieved memories (default to medium if retrieval degraded)
+    const difficulty = retrievalFailed
+      ? 'medium'
+      : determineDifficulty(retrievedMemories, topic);
 
     // 3. Generate Question with AI (with 1 retry and fallback to question bank)
     const generated = await generateQuestionWithAI({
