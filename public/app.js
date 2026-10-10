@@ -1,8 +1,9 @@
 // public/app.js
 // Client-side application controller for Study Buddy.
 // WHY: Strictly uses textContent and safe DOM node creation (NEVER innerHTML with user input),
-// preventing XSS. Implements 10-Question Adaptive Quiz runner, Concept Lessons teaching hub,
-// Cognitive Memory inspection/correction, and Chart.js learning analytics.
+// preventing XSS. Implements Home Page landing with proper Sign In & Registration,
+// 10-Question Adaptive Quiz runner, Concept Lessons with Gemini AI & live pass/fail memory,
+// Cognitive Memory inspection/correction, and 4 multi-dimensional Chart.js analytics visualizations.
 
 import { api } from './api.js';
 
@@ -30,32 +31,54 @@ let activeQuizQuestions = [];
 let currentQuizIndex = 0;
 let quizScore = 0;
 let selectedOptionIndex = null;
-let progressChartInstance = null;
 let memoryToCorrectId = null;
 
-// DOM Elements
+// Chart Instances
+let chartTopicMasteryInstance = null;
+let chartSubjectCompareInstance = null;
+let chartMemoryDistInstance = null;
+let chartTimelineInstance = null;
+
+// DOM View Containers
+const viewLanding = document.getElementById('view-landing');
+const viewApp = document.getElementById('view-app');
+
+// Landing Auth Elements
+const authTabLogin = document.getElementById('auth-tab-login');
+const authTabSignup = document.getElementById('auth-tab-signup');
+const formLoginContainer = document.getElementById('form-login-container');
+const formSignupContainer = document.getElementById('form-signup-container');
+const loginAlert = document.getElementById('login-alert');
+const signupAlert = document.getElementById('signup-alert');
+const loginForm = document.getElementById('login-form');
+const loginUsernameInput = document.getElementById('login-username');
+const loginPasswordInput = document.getElementById('login-password');
+const loginSubmitBtn = document.getElementById('login-submit-btn');
+const signupForm = document.getElementById('signup-form');
+const signupUsernameInput = document.getElementById('signup-username');
+const signupDisplayNameInput = document.getElementById('signup-displayname');
+const signupPasswordInput = document.getElementById('signup-password');
+const signupTermsCheckbox = document.getElementById('signup-terms');
+const signupSubmitBtn = document.getElementById('signup-submit-btn');
+const landingQuickDemoBtn = document.getElementById('landing-quick-demo-btn');
+const quickDemoBtn = document.getElementById('quick-demo-btn');
+
+// App Header Elements
 const studentBadge = document.getElementById('current-student-badge');
-const switchStudentBtn = document.getElementById('switch-student-btn');
+const logoutBtn = document.getElementById('logout-btn');
 const exportDataBtn = document.getElementById('export-data-btn');
 const deleteAccountBtn = document.getElementById('delete-account-btn');
-const studentModal = document.getElementById('student-modal');
-const authUsernameInput = document.getElementById('auth-username');
-const authDisplayNameInput = document.getElementById('auth-display-name');
-const authPasswordInput = document.getElementById('auth-password');
-const authErrorMsg = document.getElementById('auth-error');
-const modalLoginBtn = document.getElementById('modal-login-btn');
-const modalSignupBtn = document.getElementById('modal-signup-btn');
-const modalCancelBtn = document.getElementById('modal-cancel-btn');
 
+// Navigation Tabs
 const tabButtons = document.querySelectorAll('.tab-btn');
 const tabPanels = document.querySelectorAll('.tab-panel');
 
+// Tab 1: Quiz Elements
 const openerBanner = document.getElementById('opener-banner');
 const selectSubject = document.getElementById('select-subject');
 const selectTopic = document.getElementById('select-topic');
 const startBatchQuizBtn = document.getElementById('start-batch-quiz-btn');
 const fetchSingleQuestionBtn = document.getElementById('fetch-single-question-btn');
-
 const questionCard = document.getElementById('question-card');
 const quizProgressHeader = document.getElementById('quiz-progress-header');
 const quizStepIndicator = document.getElementById('quiz-step-indicator');
@@ -72,20 +95,25 @@ const feedbackBox = document.getElementById('feedback-box');
 const whyBox = document.getElementById('why-box');
 const whyText = document.getElementById('why-text');
 const whyBreakdown = document.getElementById('why-breakdown');
-
 const quizSummaryCard = document.getElementById('quiz-summary-card');
 const summaryScoreValue = document.getElementById('summary-score-value');
 const summaryMemoryImpact = document.getElementById('summary-memory-impact');
 const teachWeaknessBtn = document.getElementById('teach-weakness-btn');
 const restartQuizBtn = document.getElementById('restart-quiz-btn');
 
-// Lessons Tab Elements
+// Tab 2: Lessons Elements
 const recommendedChips = document.getElementById('recommended-chips');
 const lessonSubject = document.getElementById('lesson-subject');
 const lessonTopic = document.getElementById('lesson-topic');
 const loadLessonBtn = document.getElementById('load-lesson-btn');
 const teachPriorityBtn = document.getElementById('teach-priority-btn');
 const lessonCardView = document.getElementById('lesson-card-view');
+const lessonStatsBanner = document.getElementById('lesson-stats-banner');
+const lessonStatAttempts = document.getElementById('lesson-stat-attempts');
+const lessonStatPassed = document.getElementById('lesson-stat-passed');
+const lessonStatFailed = document.getElementById('lesson-stat-failed');
+const lessonStatRate = document.getElementById('lesson-stat-rate');
+const lessonAiBadge = document.getElementById('lesson-ai-badge');
 const lessonDiagnosisBox = document.getElementById('lesson-diagnosis-box');
 const lessonTitle = document.getElementById('lesson-title');
 const lessonSummary = document.getElementById('lesson-summary');
@@ -96,7 +124,7 @@ const lessonCode = document.getElementById('lesson-code');
 const lessonTakeaways = document.getElementById('lesson-takeaways');
 const quizFromLessonBtn = document.getElementById('quiz-from-lesson-btn');
 
-// Memories Tab Elements
+// Tab 3: Memories Elements
 const memoriesContainer = document.getElementById('memories-container');
 const refreshMemoriesBtn = document.getElementById('refresh-memories-btn');
 const correctModal = document.getElementById('correct-modal');
@@ -104,10 +132,20 @@ const correctContentInput = document.getElementById('correct-content');
 const correctSubmitBtn = document.getElementById('correct-submit-btn');
 const correctCancelBtn = document.getElementById('correct-cancel-btn');
 
-// Progress Tab Elements
+// Tab 4: Progress Elements
 const statAccuracy = document.getElementById('stat-accuracy');
 const statAttempts = document.getElementById('stat-attempts');
 const statCorrect = document.getElementById('stat-correct');
+const statWeaknesses = document.getElementById('stat-weaknesses');
+
+// Cookie consent
+const cookieDismissBtn = document.getElementById('cookie-dismiss-btn');
+if (cookieDismissBtn) {
+  cookieDismissBtn.addEventListener('click', () => {
+    const banner = document.getElementById('cookie-banner');
+    if (banner) banner.style.display = 'none';
+  });
+}
 
 // --- INITIALIZATION ---
 
@@ -116,7 +154,7 @@ async function init() {
   populateTopics(lessonSubject.value, lessonTopic);
   setupEventListeners();
 
-  // Check if authenticated
+  // Check if session cookie exists
   try {
     const authData = await api.getMe();
     if (authData?.user) {
@@ -124,27 +162,24 @@ async function init() {
       return;
     }
   } catch (_) {
-    // Attempt automatic default login or open modal
-    await autoLoginOrPrompt();
+    // Not logged in -> Show Home Page landing view
   }
+
+  showLandingView();
 }
 
-async function autoLoginOrPrompt() {
-  try {
-    const quickData = await api.quickLogin();
-    if (quickData?.user) {
-      setUser(quickData.user);
-      return;
-    }
-  } catch (_) {
-    openAuthModal();
-  }
+function showLandingView() {
+  currentUser = null;
+  viewLanding.style.display = 'block';
+  viewApp.style.display = 'none';
 }
 
 function setUser(user) {
   currentUser = user;
-  studentBadge.textContent = user.displayName || user.username;
-  closeAuthModal();
+  viewLanding.style.display = 'none';
+  viewApp.style.display = 'block';
+
+  studentBadge.textContent = `${user.displayName || user.username} (${user.role || 'Student'})`;
   loadSessionOpener();
   loadRecommendedLessons();
   loadMemories();
@@ -154,7 +189,6 @@ function setUser(user) {
 function populateTopics(subject, targetSelect) {
   targetSelect.innerHTML = '';
 
-  // Add "All Topics" option for comprehensive quiz
   if (targetSelect === selectTopic) {
     const allOpt = document.createElement('option');
     allOpt.value = 'all';
@@ -172,12 +206,40 @@ function populateTopics(subject, targetSelect) {
 }
 
 function setupEventListeners() {
-  // Tab Navigation
+  // Landing Auth Tabs
+  authTabLogin.addEventListener('click', () => {
+    authTabLogin.classList.add('active');
+    authTabSignup.classList.remove('active');
+    formLoginContainer.style.display = 'block';
+    formSignupContainer.style.display = 'none';
+    loginAlert.style.display = 'none';
+  });
+
+  authTabSignup.addEventListener('click', () => {
+    authTabSignup.classList.add('active');
+    authTabLogin.classList.remove('active');
+    formSignupContainer.style.display = 'block';
+    formLoginContainer.style.display = 'none';
+    signupAlert.style.display = 'none';
+  });
+
+  // Auth Form Submits
+  loginForm.addEventListener('submit', handleLoginFormSubmit);
+  signupForm.addEventListener('submit', handleSignupFormSubmit);
+
+  // Demo Login Buttons
+  if (landingQuickDemoBtn) landingQuickDemoBtn.addEventListener('click', handleDemoLogin);
+  if (quickDemoBtn) quickDemoBtn.addEventListener('click', handleDemoLogin);
+
+  // Logout
+  logoutBtn.addEventListener('click', handleLogout);
+
+  // App Tabs Navigation
   tabButtons.forEach((btn) => {
     btn.addEventListener('click', () => switchTab(btn.dataset.tab));
   });
 
-  // Subject Dropdowns change topics
+  // Subject Dropdowns
   selectSubject.addEventListener('change', () => populateTopics(selectSubject.value, selectTopic));
   lessonSubject.addEventListener('change', () => populateTopics(lessonSubject.value, lessonTopic));
 
@@ -199,12 +261,6 @@ function setupEventListeners() {
   correctCancelBtn.addEventListener('click', () => closeCorrectModal());
   correctSubmitBtn.addEventListener('click', () => submitMemoryCorrection());
 
-  // Auth buttons
-  switchStudentBtn.addEventListener('click', () => openAuthModal());
-  modalCancelBtn.addEventListener('click', () => closeAuthModal());
-  modalLoginBtn.addEventListener('click', () => handleLogin());
-  modalSignupBtn.addEventListener('click', () => handleSignup());
-
   // GDPR Sovereignty buttons
   exportDataBtn.addEventListener('click', () => exportUserData());
   deleteAccountBtn.addEventListener('click', () => deleteUserAccount());
@@ -217,6 +273,91 @@ function switchTab(tabId) {
   if (tabId === 'memories') loadMemories();
   if (tabId === 'progress') loadProgress();
   if (tabId === 'lessons') loadRecommendedLessons();
+}
+
+// --- AUTH HANDLERS ---
+
+async function handleLoginFormSubmit(e) {
+  e.preventDefault();
+  const username = loginUsernameInput.value.trim();
+  const password = loginPasswordInput.value;
+
+  if (!username || !password) {
+    showFormAlert(loginAlert, 'Username and password are required.');
+    return;
+  }
+
+  loginSubmitBtn.disabled = true;
+  loginSubmitBtn.textContent = 'Authenticating...';
+  loginAlert.style.display = 'none';
+
+  try {
+    const res = await api.login(username, password);
+    setUser(res.user);
+  } catch (err) {
+    showFormAlert(loginAlert, err.message || 'Incorrect username or password');
+  } finally {
+    loginSubmitBtn.disabled = false;
+    loginSubmitBtn.textContent = 'Sign In to Study Buddy';
+  }
+}
+
+async function handleSignupFormSubmit(e) {
+  e.preventDefault();
+  const username = signupUsernameInput.value.trim();
+  const displayName = signupDisplayNameInput.value.trim();
+  const password = signupPasswordInput.value;
+  const termsAccepted = signupTermsCheckbox.checked;
+
+  if (!username || !displayName || !password) {
+    showFormAlert(signupAlert, 'All fields are required.');
+    return;
+  }
+
+  if (!termsAccepted) {
+    showFormAlert(signupAlert, 'You must accept the Terms and Privacy Policy.');
+    return;
+  }
+
+  signupSubmitBtn.disabled = true;
+  signupSubmitBtn.textContent = 'Securing account (verifying human session)...';
+  signupAlert.style.display = 'none';
+
+  try {
+    const res = await api.signup(username, displayName, password);
+    setUser(res.user);
+  } catch (err) {
+    showFormAlert(signupAlert, err.message || 'Registration failed');
+  } finally {
+    signupSubmitBtn.disabled = false;
+    signupSubmitBtn.textContent = 'Create Student Account';
+  }
+}
+
+async function handleDemoLogin() {
+  try {
+    if (quickDemoBtn) quickDemoBtn.disabled = true;
+    if (landingQuickDemoBtn) landingQuickDemoBtn.disabled = true;
+    const res = await api.quickLogin();
+    setUser(res.user);
+  } catch (err) {
+    alert(`Demo login error: ${err.message}`);
+  } finally {
+    if (quickDemoBtn) quickDemoBtn.disabled = false;
+    if (landingQuickDemoBtn) landingQuickDemoBtn.disabled = false;
+  }
+}
+
+async function handleLogout() {
+  try {
+    await api.logout();
+  } catch (_) {}
+  showLandingView();
+}
+
+function showFormAlert(alertEl, msg) {
+  alertEl.textContent = msg;
+  alertEl.style.display = 'block';
 }
 
 // --- SESSION OPENER ---
@@ -235,7 +376,7 @@ async function loadSessionOpener() {
 // --- 10-QUESTION ADAPTIVE QUIZ RUNNER ---
 
 async function start10QuestionQuiz() {
-  if (!currentUser) return openAuthModal();
+  if (!currentUser) return showLandingView();
 
   const subject = selectSubject.value;
   const topic = selectTopic.value;
@@ -266,7 +407,7 @@ async function start10QuestionQuiz() {
 }
 
 async function startSingleQuestion() {
-  if (!currentUser) return openAuthModal();
+  if (!currentUser) return showLandingView();
 
   const subject = selectSubject.value;
   const topic = selectTopic.value === 'all' ? TOPICS[subject][0].id : selectTopic.value;
@@ -405,7 +546,6 @@ async function submitAnswer() {
     if (currentQuizIndex + 1 < activeQuizQuestions.length) {
       nextQuestionBtn.style.display = 'inline-block';
     } else {
-      // Quiz complete!
       showQuizSummary();
     }
   } catch (err) {
@@ -457,7 +597,8 @@ async function loadRecommendedLessons() {
     data.recommended.forEach((rec) => {
       const chip = document.createElement('button');
       chip.className = 'lesson-chip';
-      chip.textContent = `🎯 ${rec.title}`;
+      const statsSnippet = rec.stats ? ` [${rec.stats}]` : '';
+      chip.textContent = `🎯 ${rec.title}${statsSnippet}`;
       chip.title = rec.reason;
 
       chip.addEventListener('click', () => {
@@ -494,13 +635,12 @@ async function teachWeakestTopic() {
     }
   } catch (_) {}
 
-  // Fallback
   await teachConcept(lessonSubject.value, lessonTopic.value);
 }
 
 async function teachConcept(subject, topic) {
   loadLessonBtn.disabled = true;
-  loadLessonBtn.textContent = 'Loading Lesson...';
+  loadLessonBtn.textContent = 'Generating Gemini Lesson...';
 
   try {
     const data = await api.teachLesson(subject, topic);
@@ -509,19 +649,39 @@ async function teachConcept(subject, topic) {
     lessonCardView.style.display = 'block';
     lessonCardView.scrollIntoView({ behavior: 'smooth' });
 
+    // Populate Live Memory Stats Banner
+    const stats = lesson.studentStats || { totalAttempts: 0, passedCount: 0, failedCount: 0, accuracyPercent: 0 };
+    lessonStatAttempts.textContent = `📊 ${stats.totalAttempts} Attempted`;
+    lessonStatPassed.textContent = `✅ ${stats.passedCount} Passed`;
+    lessonStatFailed.textContent = `❌ ${stats.failedCount} Failed`;
+    lessonStatRate.textContent = `🎯 ${stats.accuracyPercent}% Accuracy`;
+
+    // AI Provider Badge
+    if (lesson.aiProvider === 'gemini') {
+      lessonAiBadge.textContent = '🤖 Gemini 2.5 AI Engine (Live)';
+      lessonAiBadge.style.backgroundColor = '#DCFCE7';
+      lessonAiBadge.style.color = '#166534';
+      lessonAiBadge.style.borderColor = '#86EFAC';
+    } else {
+      lessonAiBadge.textContent = '🤖 Gemini AI (Adaptive Cognitive Engine)';
+      lessonAiBadge.style.backgroundColor = '#F3E8FF';
+      lessonAiBadge.style.color = '#6B21A8';
+      lessonAiBadge.style.borderColor = '#D8B4FE';
+    }
+
     // Personal memory diagnosis
-    if (lesson.studentDiagnosis) {
+    if (lesson.diagnosis || lesson.studentDiagnosis) {
       lessonDiagnosisBox.style.display = 'block';
-      lessonDiagnosisBox.textContent = `🧠 ${lesson.studentDiagnosis}`;
+      lessonDiagnosisBox.textContent = `🧠 ${lesson.diagnosis || lesson.studentDiagnosis}`;
     } else {
       lessonDiagnosisBox.style.display = 'none';
     }
 
-    lessonTitle.textContent = lesson.title;
+    lessonTitle.textContent = lesson.topicLabel || lesson.title;
     lessonSummary.textContent = lesson.summary;
     lessonAnalogy.textContent = lesson.analogy;
     lessonMechanics.textContent = lesson.coreMechanics;
-    lessonPitfalls.textContent = lesson.commonPitfalls;
+    lessonPitfalls.textContent = lesson.pitfalls || lesson.commonPitfalls;
     lessonCode.textContent = lesson.codeOrDiagram || '-- Code / Architecture example';
 
     lessonTakeaways.innerHTML = '';
@@ -594,7 +754,7 @@ async function loadMemories() {
 
       const meta = document.createElement('div');
       meta.className = 'memory-meta';
-      meta.textContent = `Strength: ${Math.round((mem.strength || 0) * 100)}% | Source: ${mem.source || 'quiz'}`;
+      meta.textContent = `Strength: ${Math.round((mem.strength || 0) * 100)}% | Source: ${mem.source || 'quiz'} | Status: ${mem.status || 'active'}`;
 
       const actions = document.createElement('div');
       actions.className = 'memory-actions';
@@ -665,7 +825,7 @@ async function deleteMemory(id) {
   }
 }
 
-// --- PROGRESS TAB & CHART.JS ---
+// --- MULTI-CHART ANALYTICS (CHART.JS) ---
 
 async function loadProgress() {
   try {
@@ -674,36 +834,196 @@ async function loadProgress() {
     statAccuracy.textContent = `${data.overallAccuracy || 0}%`;
     statAttempts.textContent = data.totalAttempts || 0;
     statCorrect.textContent = data.totalCorrect || 0;
+    statWeaknesses.textContent = data.memoryBreakdown?.activeWeaknesses || 0;
 
-    renderProgressChart(data.timeline || []);
+    renderAllCharts(data);
   } catch (err) {
     console.warn('Failed to load progress analytics:', err);
   }
 }
 
-function renderProgressChart(timeline) {
-  const canvas = document.getElementById('progress-chart');
-  if (!canvas || !window.Chart) return;
+function renderAllCharts(data) {
+  if (!window.Chart) return;
 
-  const labels = timeline.map((t) => `${t.date} (${t.topic})`);
-  const accuracyData = timeline.map((t) => t.accuracy);
+  // 1. Chart: Topic Mastery Breakdown (Horizontal Bar)
+  renderTopicMasteryChart(data.topicBreakdown || []);
 
-  if (progressChartInstance) {
-    progressChartInstance.destroy();
+  // 2. Chart: Subject Performance (Pass vs Fail Comparison)
+  renderSubjectCompareChart(data.subjectBreakdown || []);
+
+  // 3. Chart: Cognitive Memory State Breakdown (Doughnut)
+  renderMemoryDistChart(data.memoryBreakdown || {});
+
+  // 4. Chart: Learning Progression Curve (Line)
+  renderTimelineChart(data.timeline || []);
+}
+
+function renderTopicMasteryChart(topics) {
+  const canvas = document.getElementById('chart-topic-mastery');
+  if (!canvas) return;
+
+  if (chartTopicMasteryInstance) {
+    chartTopicMasteryInstance.destroy();
   }
 
-  progressChartInstance = new window.Chart(canvas, {
+  const labels = topics.map((t) => t.topic);
+  const dataValues = topics.map((t) => t.accuracy);
+  const backgroundColors = dataValues.map((val) => {
+    if (val >= 70) return '#166534'; // Green
+    if (val >= 40) return '#B45309'; // Amber
+    return '#DC2626'; // Red
+  });
+
+  chartTopicMasteryInstance = new window.Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Mastery Accuracy (%)',
+          data: dataValues,
+          backgroundColor: backgroundColors,
+          borderRadius: 4
+        }
+      ]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        x: {
+          beginAtZero: true,
+          max: 100,
+          ticks: { callback: (v) => `${v}%` }
+        }
+      }
+    }
+  });
+}
+
+function renderSubjectCompareChart(subjects) {
+  const canvas = document.getElementById('chart-subject-compare');
+  if (!canvas) return;
+
+  if (chartSubjectCompareInstance) {
+    chartSubjectCompareInstance.destroy();
+  }
+
+  const labels = ['DBMS', 'OS'];
+  const passedData = labels.map((subj) => {
+    const found = subjects.find((s) => s.subject === subj);
+    return found ? found.passed : 0;
+  });
+  const failedData = labels.map((subj) => {
+    const found = subjects.find((s) => s.subject === subj);
+    return found ? found.failed : 0;
+  });
+
+  chartSubjectCompareInstance = new window.Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Passed (Correct)',
+          data: passedData,
+          backgroundColor: '#166534',
+          borderRadius: 4
+        },
+        {
+          label: 'Failed (Wrong)',
+          data: failedData,
+          backgroundColor: '#DC2626',
+          borderRadius: 4
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { precision: 0 }
+        }
+      }
+    }
+  });
+}
+
+function renderMemoryDistChart(memoryBreakdown) {
+  const canvas = document.getElementById('chart-memory-dist');
+  if (!canvas) return;
+
+  if (chartMemoryDistInstance) {
+    chartMemoryDistInstance.destroy();
+  }
+
+  const strengths = memoryBreakdown.activeStrengths || 0;
+  const weaknesses = memoryBreakdown.activeWeaknesses || 0;
+  const superseded = memoryBreakdown.supersededCount || 0;
+
+  // If no memories yet, show empty placeholder segment
+  const hasData = strengths + weaknesses + superseded > 0;
+  const data = hasData ? [strengths, weaknesses, superseded] : [1];
+  const labels = hasData ? ['Active Strengths', 'Active Weaknesses', 'Superseded (Mastered)'] : ['No memories yet'];
+  const colors = hasData ? ['#166534', '#F59E0B', '#64748B'] : ['#E2E8F0'];
+
+  chartMemoryDistInstance = new window.Chart(canvas, {
+    type: 'doughnut',
+    data: {
+      labels,
+      datasets: [
+        {
+          data,
+          backgroundColor: colors,
+          hoverOffset: 4
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom'
+        }
+      }
+    }
+  });
+}
+
+function renderTimelineChart(timeline) {
+  const canvas = document.getElementById('chart-timeline');
+  if (!canvas) return;
+
+  if (chartTimelineInstance) {
+    chartTimelineInstance.destroy();
+  }
+
+  const labels = timeline.length > 0
+    ? timeline.map((t) => `${t.date} (${t.topic})`)
+    : ['Session 1'];
+  const accuracyData = timeline.length > 0
+    ? timeline.map((t) => t.accuracy)
+    : [0];
+
+  chartTimelineInstance = new window.Chart(canvas, {
     type: 'line',
     data: {
       labels,
       datasets: [
         {
-          label: 'Topic Accuracy (%)',
+          label: 'Session Accuracy (%)',
           data: accuracyData,
           borderColor: '#0F4A1E',
-          backgroundColor: 'rgba(15, 74, 30, 0.1)',
+          backgroundColor: 'rgba(15, 74, 30, 0.12)',
           fill: true,
-          tension: 0.3,
+          tension: 0.35,
           pointRadius: 5,
           pointBackgroundColor: '#0F4A1E'
         }
@@ -723,64 +1043,7 @@ function renderProgressChart(timeline) {
   });
 }
 
-// --- AUTHENTICATION & ACCOUNT SOVEREIGNTY ---
-
-function openAuthModal() {
-  studentModal.classList.add('active');
-  authErrorMsg.style.display = 'none';
-}
-
-function closeAuthModal() {
-  studentModal.classList.remove('active');
-}
-
-async function handleLogin() {
-  const username = authUsernameInput.value.trim();
-  const password = authPasswordInput.value;
-
-  if (!username || !password) {
-    showAuthError('Username and password are required');
-    return;
-  }
-
-  modalLoginBtn.disabled = true;
-  try {
-    const res = await api.login(username, password);
-    setUser(res.user);
-  } catch (err) {
-    showAuthError(err.message);
-  } finally {
-    modalLoginBtn.disabled = false;
-  }
-}
-
-async function handleSignup() {
-  const username = authUsernameInput.value.trim();
-  const displayName = authDisplayNameInput.value.trim();
-  const password = authPasswordInput.value;
-
-  if (!username || !displayName || !password) {
-    showAuthError('Username, display name, and password are required');
-    return;
-  }
-
-  modalSignupBtn.disabled = true;
-  modalSignupBtn.textContent = 'Creating...';
-  try {
-    const res = await api.signup(username, displayName, password);
-    setUser(res.user);
-  } catch (err) {
-    showAuthError(err.message);
-  } finally {
-    modalSignupBtn.disabled = false;
-    modalSignupBtn.textContent = 'Create Account';
-  }
-}
-
-function showAuthError(msg) {
-  authErrorMsg.textContent = msg;
-  authErrorMsg.style.display = 'block';
-}
+// --- GDPR DATA EXPORT & ACCOUNT DELETION ---
 
 async function exportUserData() {
   try {

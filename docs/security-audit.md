@@ -1,6 +1,6 @@
 # 🛡️ Study Buddy — Comprehensive Launch Security & Readiness Audit
-**Audit Date:** `2026-10-10T15:18:25.767Z`  
-**Git Commit:** `ae9607c`  
+**Audit Date:** `2026-10-10T15:38:30.225Z`  
+**Git Commit:** `0a075da`  
 **Environment:** `Node.js v22.19.0` on Windows
 
 ---
@@ -96,6 +96,8 @@ EXPOSED FILES AUDIT: ALL CHECKS PASSED
 
 • Asset resolved: style.css -> OK
 • Asset resolved: /vendor/chart.umd.js -> OK
+• Asset resolved: /terms.html -> OK
+• Asset resolved: /privacy.html -> OK
 • Asset resolved: /privacy.html -> OK
 • Asset resolved: /terms.html -> OK
 • Asset resolved: app.js -> OK
@@ -106,7 +108,8 @@ EXPOSED FILES AUDIT: ALL CHECKS PASSED
 
 ========================================================================
 LINK & ASSET AUDIT: ALL CHECKS PASSED
-========================================================================
+================================================
+... [truncated for report readability]
 ```
 
 ### UI Copy & Professionalism
@@ -151,17 +154,17 @@ TAP version 13
     # Subtest: 1. Verified user lookup never leaks passwordHash
     ok 1 - 1. Verified user lookup never leaks passwordHash
       ---
-      duration_ms: 122.8863
+      duration_ms: 45.0137
       type: 'test'
       ...
     # Subtest: 2. Account data export includes all student data and omits embeddings/tokenHashes
     ok 2 - 2. Account data export includes all student data and omits embeddings/tokenHashes
       ---
-      duration_ms: 308.2439
+      duration_ms: 434.5788
       type: 'test'
       ...
     # Subtest: 3. Account deletion with incorrect password fails and leaves data intact
-    ok 3 - 3. Account deleti
+    ok 3 - 3. Account deletio
 ... [truncated for report readability]
 ```
 

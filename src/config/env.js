@@ -17,6 +17,7 @@ const envSchema = z.object({
 
   ANTHROPIC_API_KEY: z.string().optional().default(''),
   EMBEDDING_API_KEY: z.string().optional().default(''),
+  GEMINI_API_KEY: z.string().optional().default(''),
 
   SESSION_SECRET: z.string().min(64, 'SESSION_SECRET must be at least 32 random bytes represented as hex (at least 64 hex characters)').refine((val) => {
     if (!/^[0-9a-fA-F]+$/.test(val)) return false;
