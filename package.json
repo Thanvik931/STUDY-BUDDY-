@@ -11,6 +11,9 @@
     "test": "node --test tests/**/*.test.js",
     "smoke": "node scripts/smoke.js",
     "evaluate": "node scripts/evaluate.js",
+    "stress": "node scripts/stresstest.js",
+    "stress:quick": "node scripts/stresstest.js --quick",
+    "stress:soak": "node scripts/stresstest.js --soak",
     "stresstest": "node scripts/stresstest.js"
   },
   "dependencies": {

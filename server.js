@@ -22,6 +22,7 @@ import sessionRouter from './src/routes/session.js';
 import quizRouter from './src/routes/quiz.js';
 import memoriesRouter from './src/routes/memories.js';
 import demoRouter from './src/routes/demo.js';
+import stressRouter from './src/routes/stress.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -64,9 +65,11 @@ app.use((req, res, next) => {
 });
 
 // 4. Rate Limiting: 60 requests/min overall, 20 requests/min on /api/question
+// Concurrency rule: Header 'x-stress-bypass-limit: 1' skips limiter ONLY when STRESS_MODE=true
 const globalLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 60,
+  skip: (req) => Boolean(env.STRESS_MODE && req.headers['x-stress-bypass-limit'] === '1'),
   standardHeaders: true,
   legacyHeaders: false,
   message: {
@@ -80,6 +83,7 @@ const globalLimiter = rateLimit({
 const questionLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 20,
+  skip: (req) => Boolean(env.STRESS_MODE && req.headers['x-stress-bypass-limit'] === '1'),
   standardHeaders: true,
   legacyHeaders: false,
   message: {
@@ -90,25 +94,32 @@ const questionLimiter = rateLimit({
   }
 });
 
-// Apply rate limits to API routes
+// 5. Liveness and metrics monitoring endpoints (unthrottled for monitoring/health probes)
+app.use('/api', healthRouter);
+app.use('/api', metricsRouter);
+
+// 6. Apply rate limits to API routes
 app.use('/api', globalLimiter);
 app.use('/api/question', questionLimiter);
 
-// 5. Limit JSON request bodies to 10kb to prevent memory exhaustion attacks
+// 7. Limit JSON request bodies to 10kb to prevent memory exhaustion attacks
 app.use(express.json({ limit: '10kb' }));
 
-// 6. Serve static frontend files from /public
+// 8. Serve static frontend files from /public
 app.use(express.static(path.join(__dirname, 'public')));
 
-// 7. Mount API routes
-app.use('/api', healthRouter);
-app.use('/api', metricsRouter);
+// 9. Mount API routes
 app.use('/api', progressRouter);
 app.use('/api', studentsRouter);
 app.use('/api', sessionRouter);
 app.use('/api', quizRouter);
 app.use('/api', memoriesRouter);
 app.use('/api', demoRouter);
+
+// Mount stress testing fault-injection routes ONLY when STRESS_MODE=true
+if (env.STRESS_MODE) {
+  app.use('/api', stressRouter);
+}
 
 // 8. 404 Handler for unknown API endpoints
 app.use('/api/*', notFoundHandler);
@@ -124,6 +135,16 @@ async function startServer() {
     await connectDB();
     server = app.listen(env.PORT, () => {
       console.log(`🚀 Study Buddy server listening on http://localhost:${env.PORT}`);
+      if (env.STRESS_MODE) {
+        console.log('\n' + '!'.repeat(70));
+        console.log('⚠️⚠️⚠️  WARNING: SERVER IS RUNNING IN STRESS_MODE!  ⚠️⚠️⚠️');
+        console.log('   - External AI calls (Claude) are DISABLED; simulated question bank active.');
+        console.log('   - Embeddings are deterministic fake vectors (no paid API calls).');
+        console.log('   - Rate limiter bypass header "x-stress-bypass-limit: 1" is ACTIVE.');
+        console.log('   - Runtime fault injection routes (/api/stress/flags) are MOUNTED.');
+        console.log('   - Test database isolated: "study_buddy_stress".');
+        console.log('!'.repeat(70) + '\n');
+      }
     });
     // Set 30 seconds HTTP request timeout on server socket layer
     server.requestTimeout = 30000;
