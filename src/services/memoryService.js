@@ -50,62 +50,73 @@ export async function processAnswerMemoryRules({ ownerId, subject, topic, isCorr
 
   // RULE A or CONFLICT: Create or strengthen weakness
   if (decision.createWeakness) {
-    if (activeWeakness) {
-      // Strengthen existing active weakness (counters do NOT trigger a re-embed)
-      const newStrength = decision.weaknessStrength;
-      const newExpiresAt = calculateExpiryDate('weakness', false, now);
-
-      await db.collection('memories').updateOne(
-        buildOwnerFilter(ownerId, { _id: activeWeakness._id }),
-        {
-          $set: {
-            strength: newStrength,
-            updatedAt: now,
-            expiresAt: newExpiresAt
-          },
-          $inc: {
-            'evidence.wrong': 1,
-            'evidence.attempts': 1
-          }
-        }
-      );
-      actionsTaken.push('strengthened_existing_weakness');
-    } else {
-      // Create brand new weakness memory with stable embedding
+    // Concurrency Rule: Compute embedding ONLY when no active memory exists yet
+    // WHY: Embeddings are stable representations of topic concepts; computing only
+    // on initial creation saves compute latency and external API roundtrips.
+    let embedding = null;
+    if (!activeWeakness) {
       const embeddingText = generateStableEmbeddingText(subject, topic, 'weakness', specificIssue);
-      let embedding;
       try {
         embedding = await getEmbedding(embeddingText);
       } catch (embErr) {
-        console.warn('Embedding service unavailable when creating memory, using fallback zero vector:', embErr.message);
+        console.warn('Embedding service unavailable when creating weakness memory, using fallback zero vector:', embErr.message);
         embedding = new Array(env.EMBEDDING_DIMENSIONS).fill(0);
       }
-      const expiresAt = calculateExpiryDate('weakness', false, now);
+    }
 
-      const newDoc = {
+    const weaknessFilter = {
+      ownerId,
+      subject,
+      topic,
+      type: 'weakness',
+      status: 'active'
+    };
+    const newStrength = decision.weaknessStrength;
+    const newExpiresAt = calculateExpiryDate('weakness', false, now);
+
+    const weaknessUpdateDoc = {
+      $set: {
+        strength: newStrength,
+        updatedAt: now,
+        expiresAt: newExpiresAt
+      },
+      $inc: {
+        'evidence.wrong': 1,
+        'evidence.attempts': 1
+      },
+      $setOnInsert: {
         ownerId,
-        type: 'weakness',
         subject,
         topic,
+        type: 'weakness',
         content: `${subject} ${topic}: student struggles with ${topic}`,
         source: 'quiz_attempt',
-        strength: decision.weaknessStrength,
-        evidence: {
-          wrong: updatedStats.wrongSinceReset || 1,
-          attempts: updatedStats.attempts || 1
-        },
-        embedding,
         status: 'active',
         private: false,
         createdAt: now,
-        updatedAt: now,
         lastUsedAt: null,
-        expiresAt,
-        supersededBy: null
-      };
+        supersededBy: null,
+        ...(embedding ? { embedding } : {})
+      }
+    };
 
-      await db.collection('memories').insertOne(newDoc);
-      actionsTaken.push('created_new_weakness');
+    // Concurrency Rule: Single updateOne with upsert on { ownerId, subject, topic, type, status: 'active' }.
+    // If MongoDB returns duplicate key error (code 11000) due to simultaneous requests racing, retry ONCE as plain update.
+    try {
+      const res = await db.collection('memories').updateOne(weaknessFilter, weaknessUpdateDoc, { upsert: true });
+      if (res.upsertedCount > 0) {
+        actionsTaken.push('created_new_weakness');
+      } else {
+        actionsTaken.push('strengthened_existing_weakness');
+      }
+    } catch (err) {
+      if (err.code === 11000) {
+        console.warn('Concurrency race detected on weakness creation (code 11000). Retrying ONCE as a plain update...');
+        await db.collection('memories').updateOne(weaknessFilter, weaknessUpdateDoc);
+        actionsTaken.push('strengthened_existing_weakness');
+      } else {
+        throw err;
+      }
     }
 
     // If conflict: supersede existing strength memory
@@ -126,41 +137,69 @@ export async function processAnswerMemoryRules({ ownerId, subject, topic, isCorr
 
   // RULE B: Create strength memory and supersede active weakness
   if (decision.createStrength) {
+    // Concurrency Rule: Compute embedding ONLY when no active memory exists yet
+    let embedding = null;
     if (!activeStrength) {
       const embeddingText = generateStableEmbeddingText(subject, topic, 'strength');
-      let embedding;
       try {
         embedding = await getEmbedding(embeddingText);
       } catch (embErr) {
         console.warn('Embedding service unavailable when creating strength memory, using fallback zero vector:', embErr.message);
         embedding = new Array(env.EMBEDDING_DIMENSIONS).fill(0);
       }
-      const expiresAt = calculateExpiryDate('strength', false, now);
+    }
 
-      const strengthDoc = {
+    const strengthFilter = {
+      ownerId,
+      subject,
+      topic,
+      type: 'strength',
+      status: 'active'
+    };
+    const strengthExpiresAt = calculateExpiryDate('strength', false, now);
+
+    const strengthUpdateDoc = {
+      $set: {
+        strength: 1.0,
+        updatedAt: now,
+        expiresAt: strengthExpiresAt
+      },
+      $inc: {
+        'evidence.attempts': 1
+      },
+      $setOnInsert: {
         ownerId,
-        type: 'strength',
         subject,
         topic,
+        type: 'strength',
         content: `${subject} ${topic}: student has demonstrated consistent mastery`,
         source: 'quiz_attempt',
-        strength: 1.0,
-        evidence: {
-          wrong: 0,
-          attempts: updatedStats.attempts || 3
-        },
-        embedding,
+        'evidence.wrong': 0,
         status: 'active',
         private: false,
         createdAt: now,
-        updatedAt: now,
         lastUsedAt: null,
-        expiresAt,
-        supersededBy: null
-      };
+        supersededBy: null,
+        ...(embedding ? { embedding } : {})
+      }
+    };
 
-      await db.collection('memories').insertOne(strengthDoc);
-      actionsTaken.push('created_strength_memory');
+    // Concurrency Rule: Single updateOne with upsert. Retry ONCE on code 11000 as plain update.
+    try {
+      const res = await db.collection('memories').updateOne(strengthFilter, strengthUpdateDoc, { upsert: true });
+      if (res.upsertedCount > 0) {
+        actionsTaken.push('created_strength_memory');
+      } else {
+        actionsTaken.push('strengthened_existing_strength');
+      }
+    } catch (err) {
+      if (err.code === 11000) {
+        console.warn('Concurrency race detected on strength creation (code 11000). Retrying ONCE as a plain update...');
+        await db.collection('memories').updateOne(strengthFilter, strengthUpdateDoc);
+        actionsTaken.push('strengthened_existing_strength');
+      } else {
+        throw err;
+      }
     }
 
     // Supersede active weakness
