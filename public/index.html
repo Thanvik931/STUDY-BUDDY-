@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Study Buddy — Adaptive Engineering AI Companion</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=2.2">
   <!-- Self-hosted Chart.js (Strict CSP Rule 13.1c: script-src 'self') -->
   <script src="/vendor/chart.umd.js"></script>
 </head>
@@ -429,66 +429,91 @@
       <!-- ================= TAB 3: ACTIVE RECALL FLASHCARDS ================= -->
       <section id="tab-flashcards" class="tab-panel">
         <div class="card">
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;">
+          <!-- Flashcards Header & Controls Bar -->
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.25rem;">
             <div>
               <h2 class="card-title" style="margin-bottom: 0.2rem;">Spaced Repetition & Active Recall Flashcards</h2>
               <p style="font-size: 0.82rem; color: var(--text-muted);">
                 Test your mental recall. Rating yourself updates your cognitive memory documents in MongoDB.
               </p>
             </div>
-            <div style="display: flex; gap: 0.5rem; align-items: center;">
-              <select id="flashcard-subject-select" style="padding: 0.35rem 0.65rem; border-radius: 6px; border: 1px solid var(--border-color);">
-                <option value="ALL">All Subjects</option>
-                <option value="DBMS">DBMS</option>
-                <option value="OS">OS</option>
-              </select>
-              <span id="flashcard-counter-badge" class="hero-pill">Card 1 of 10</span>
+            
+            <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+              <button id="fc-view-grid-btn" class="btn-primary" style="font-size: 0.82rem; padding: 0.35rem 0.75rem;">
+                🗂️ All Cards Grid
+              </button>
+              <button id="fc-view-deck-btn" class="btn-outline" style="color: var(--primary-dark); border-color: var(--primary-dark); font-size: 0.82rem; padding: 0.35rem 0.75rem;">
+                🎯 Practice Deck
+              </button>
+              <button id="fc-flip-all-btn" class="btn-outline" style="border-color: #64748B; color: #334155; font-size: 0.82rem; padding: 0.35rem 0.75rem;">
+                👁️ Flip All
+              </button>
             </div>
           </div>
 
-          <!-- 3D Flip Card Container -->
-          <div class="flashcard-wrapper">
-            <div id="flashcard-element" class="flashcard-card">
-              <div style="display: flex; justify-content: space-between;">
-                <span id="fc-side-label" class="flashcard-hint-tag">FRONT (QUESTION)</span>
-                <span id="fc-topic-label" class="stat-pill stat-pill-accuracy">Topic</span>
-              </div>
-              <p id="fc-main-text" class="flashcard-text">Loading flashcard...</p>
-              <div id="fc-extra-box" style="display: none; background: #F8FAFC; padding: 0.75rem; border-radius: 6px; border: 1px dashed var(--border-color); margin-bottom: 0.5rem;">
-                <div style="font-size: 0.78rem; font-weight: 700; color: var(--primary-dark);">Key Theorem / Formula:</div>
-                <code id="fc-formula-text" style="font-size: 0.85rem; color: #1E293B;"></code>
-              </div>
-              <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span class="flashcard-footer-tip">💡 Click card to flip / reveal back</span>
-                <button id="fc-voice-btn" class="btn-speech">🔊 Speak</button>
-              </div>
+          <!-- Subject Filter Pills -->
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div style="display: flex; gap: 0.5rem;">
+              <button id="fc-filter-all" class="hero-pill" style="cursor: pointer; background-color: var(--primary-dark); color: #FFFFFF;">All (10 Cards)</button>
+              <button id="fc-filter-dbms" class="hero-pill" style="cursor: pointer;">DBMS (5 Cards)</button>
+              <button id="fc-filter-os" class="hero-pill" style="cursor: pointer;">OS (5 Cards)</button>
+            </div>
+            <span id="flashcard-counter-badge" class="stat-pill stat-pill-accuracy">Showing 10 Flashcards</span>
+          </div>
+
+          <!-- VIEW 1: Full Grid Gallery of All Flashcards -->
+          <div id="fc-grid-view">
+            <div id="fc-cards-grid" class="flashcards-grid-layout">
+              <!-- Dynamically populated with all flashcard tiles -->
             </div>
           </div>
 
-          <!-- Rating Buttons (Spaced Repetition) -->
-          <div id="fc-rating-container" class="flashcard-rating-bar" style="display: none;">
-            <button class="rate-btn rate-btn-again" data-rating="again">
-              <span>🔴 Again</span>
-              <small>&lt; 1 min</small>
-            </button>
-            <button class="rate-btn rate-btn-hard" data-rating="hard">
-              <span>🟠 Hard</span>
-              <small>1 day</small>
-            </button>
-            <button class="rate-btn rate-btn-good" data-rating="good">
-              <span>🔵 Good</span>
-              <small>3 days</small>
-            </button>
-            <button class="rate-btn rate-btn-easy" data-rating="easy">
-              <span>🟢 Easy</span>
-              <small>7 days</small>
-            </button>
+          <!-- VIEW 2: Focus Practice Deck Mode (Card-by-Card Flip) -->
+          <div id="fc-deck-view" style="display: none;">
+            <div class="flashcard-wrapper">
+              <div id="flashcard-element" class="flashcard-card">
+                <div style="display: flex; justify-content: space-between;">
+                  <span id="fc-side-label" class="flashcard-hint-tag">FRONT (QUESTION)</span>
+                  <span id="fc-topic-label" class="stat-pill stat-pill-accuracy">Topic</span>
+                </div>
+                <p id="fc-main-text" class="flashcard-text">Loading flashcard...</p>
+                <div id="fc-extra-box" style="display: none; background: #F8FAFC; padding: 0.75rem; border-radius: 6px; border: 1px dashed var(--border-color); margin-bottom: 0.5rem;">
+                  <div style="font-size: 0.78rem; font-weight: 700; color: var(--primary-dark);">Key Theorem / Formula:</div>
+                  <code id="fc-formula-text" style="font-size: 0.85rem; color: #1E293B;"></code>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span class="flashcard-footer-tip">💡 Click card to flip / reveal back</span>
+                  <button id="fc-voice-btn" class="btn-speech">🔊 Speak</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Rating Buttons (Spaced Repetition) -->
+            <div id="fc-rating-container" class="flashcard-rating-bar" style="display: none;">
+              <button class="rate-btn rate-btn-again" data-rating="again">
+                <span>🔴 Again</span>
+                <small>&lt; 1 min</small>
+              </button>
+              <button class="rate-btn rate-btn-hard" data-rating="hard">
+                <span>🟠 Hard</span>
+                <small>1 day</small>
+              </button>
+              <button class="rate-btn rate-btn-good" data-rating="good">
+                <span>🔵 Good</span>
+                <small>3 days</small>
+              </button>
+              <button class="rate-btn rate-btn-easy" data-rating="easy">
+                <span>🟢 Easy</span>
+                <small>7 days</small>
+              </button>
+            </div>
+
+            <div style="display: flex; justify-content: center; gap: 1rem; margin-top: 1.5rem;">
+              <button id="fc-prev-btn" class="btn-outline" style="color: var(--primary-dark); border-color: var(--primary-dark);">◀ Previous</button>
+              <button id="fc-next-btn" class="btn-primary">Next Card ▶</button>
+            </div>
           </div>
 
-          <div style="display: flex; justify-content: center; gap: 1rem; margin-top: 1.5rem;">
-            <button id="fc-prev-btn" class="btn-outline" style="color: var(--primary-dark); border-color: var(--primary-dark);">◀ Previous</button>
-            <button id="fc-next-btn" class="btn-primary">Next Card ▶</button>
-          </div>
         </div>
       </section>
 
@@ -763,6 +788,6 @@
     <button id="cookie-dismiss-btn" class="btn-outline" style="padding: 0.25rem 0.75rem; border-color: white; color: white;">Got it</button>
   </div>
 
-  <script type="module" src="app.js"></script>
+  <script type="module" src="app.js?v=2.2"></script>
 </body>
 </html>

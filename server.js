@@ -205,8 +205,18 @@ app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 // 14. NoSQL operator injection and string sanitization (Rule 13.5)
 app.use(sanitizeInputs);
 
-// 15. Serve static frontend files from /public
-app.use(express.static(path.join(__dirname, 'public')));
+// 15. Serve static frontend files from /public with no-cache in dev to prevent stale browser caches
+app.use(express.static(path.join(__dirname, 'public'), {
+  etag: false,
+  maxAge: 0,
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.html') || filePath.endsWith('.js') || filePath.endsWith('.css')) {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+    }
+  }
+}));
 
 // 16. Mount API routes
 app.use('/api', authRouter);

@@ -1093,9 +1093,100 @@ select:focus, input[type="text"]:focus {
 .rate-btn-again { background-color: #FEE2E2; color: #991B1B; border: 1px solid #FCA5A5; }
 .rate-btn-hard { background-color: #FEF3C7; color: #92400E; border: 1px solid #FCD34D; }
 .rate-btn-good { background-color: #E0E7FF; color: #3730A3; border: 1px solid #C7D2FE; }
-.rate-btn-easy { background-color: #DCFCE7; color: #166534; border: 1px solid #86EFAC; }
-
 .rate-btn:hover { transform: scale(1.05); }
+
+/* Flashcards Grid Layout & Dual View Modes */
+.view-mode-toggle-bar {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.flashcards-grid-layout {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 1.25rem;
+  margin-top: 1.25rem;
+}
+
+.flashcard-grid-card {
+  background-color: #FFFFFF;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  box-shadow: var(--shadow-card);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.25s ease;
+  position: relative;
+}
+
+.flashcard-grid-card:hover {
+  border-color: var(--primary-dark);
+  box-shadow: 0 6px 16px rgba(15, 74, 30, 0.1);
+  transform: translateY(-2px);
+}
+
+.flashcard-grid-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.flashcard-grid-question {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-main);
+  line-height: 1.45;
+  margin-bottom: 1rem;
+}
+
+.flashcard-grid-answer {
+  background-color: #F8FAFC;
+  border-left: 3px solid var(--primary-dark);
+  padding: 0.85rem 1rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: #1E293B;
+  margin-bottom: 0.75rem;
+  white-space: pre-line;
+}
+
+.flashcard-formula-badge {
+  background-color: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-family: ui-monospace, monospace;
+  font-size: 0.82rem;
+  color: #1E40AF;
+  margin-bottom: 0.75rem;
+}
+
+.flashcard-trap-box {
+  background-color: #FEF2F2;
+  border-left: 3px solid #DC2626;
+  padding: 0.6rem 0.85rem;
+  border-radius: 4px;
+  font-size: 0.82rem;
+  color: #991B1B;
+  margin-bottom: 1rem;
+}
+
+.fc-card-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.75rem;
+  border-top: 1px solid #F1F5F9;
+  padding-top: 0.75rem;
+}
 
 /* Mock Exam Simulator */
 .exam-timer-banner {

@@ -153,8 +153,17 @@ const lessonTakeaways = document.getElementById('lesson-takeaways');
 const quizFromLessonBtn = document.getElementById('quiz-from-lesson-btn');
 
 // Tab 3: Flashcards Elements
-const flashcardSubjectSelect = document.getElementById('flashcard-subject-select');
 const flashcardCounterBadge = document.getElementById('flashcard-counter-badge');
+const fcViewGridBtn = document.getElementById('fc-view-grid-btn');
+const fcViewDeckBtn = document.getElementById('fc-view-deck-btn');
+const fcFlipAllBtn = document.getElementById('fc-flip-all-btn');
+const fcFilterAll = document.getElementById('fc-filter-all');
+const fcFilterDbms = document.getElementById('fc-filter-dbms');
+const fcFilterOs = document.getElementById('fc-filter-os');
+const fcGridView = document.getElementById('fc-grid-view');
+const fcDeckView = document.getElementById('fc-deck-view');
+const fcCardsGrid = document.getElementById('fc-cards-grid');
+
 const flashcardElement = document.getElementById('flashcard-element');
 const fcSideLabel = document.getElementById('fc-side-label');
 const fcTopicLabel = document.getElementById('fc-topic-label');
@@ -366,16 +375,47 @@ function setupEventListeners() {
     speakText(textToSpeak);
   });
 
-  // Tab 3: Flashcards
-  flashcardElement.addEventListener('click', toggleFlashcardFlip);
-  fcPrevBtn.addEventListener('click', prevFlashcard);
-  fcNextBtn.addEventListener('click', nextFlashcard);
-  fcVoiceBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    speakText(fcMainText.textContent);
-  });
-  flashcardSubjectSelect.addEventListener('change', () => loadFlashcards(flashcardSubjectSelect.value));
-  document.querySelectorAll('.rate-btn').forEach((btn) => {
+  // Tab 3: Flashcards Dual-View & Controls
+  if (fcViewGridBtn) {
+    fcViewGridBtn.addEventListener('click', () => {
+      fcViewGridBtn.className = 'btn-primary';
+      fcViewDeckBtn.className = 'btn-outline';
+      fcGridView.style.display = 'block';
+      fcDeckView.style.display = 'none';
+    });
+  }
+  if (fcViewDeckBtn) {
+    fcViewDeckBtn.addEventListener('click', () => {
+      fcViewDeckBtn.className = 'btn-primary';
+      fcViewGridBtn.className = 'btn-outline';
+      fcDeckView.style.display = 'block';
+      fcGridView.style.display = 'none';
+      renderCurrentFlashcard();
+    });
+  }
+  if (fcFlipAllBtn) {
+    fcFlipAllBtn.addEventListener('click', toggleFlipAllCards);
+  }
+  if (fcFilterAll) {
+    fcFilterAll.addEventListener('click', () => filterFlashcardsBySubject('ALL'));
+  }
+  if (fcFilterDbms) {
+    fcFilterDbms.addEventListener('click', () => filterFlashcardsBySubject('DBMS'));
+  }
+  if (fcFilterOs) {
+    fcFilterOs.addEventListener('click', () => filterFlashcardsBySubject('OS'));
+  }
+
+  if (flashcardElement) flashcardElement.addEventListener('click', toggleFlashcardFlip);
+  if (fcPrevBtn) fcPrevBtn.addEventListener('click', prevFlashcard);
+  if (fcNextBtn) fcNextBtn.addEventListener('click', nextFlashcard);
+  if (fcVoiceBtn) {
+    fcVoiceBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      speakText(fcMainText.textContent);
+    });
+  }
+  document.querySelectorAll('#fc-rating-container .rate-btn').forEach((btn) => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       handleRateFlashcard(btn.dataset.rating);
@@ -915,47 +955,236 @@ function quizTopicFromLesson() {
 
 // --- ACTIVE RECALL FLASHCARDS ENGINE ---
 
-async function loadFlashcards(subject = null) {
+let allFlashcardsCache = [];
+let currentFcSubject = 'ALL';
+let areAllCardsFlipped = false;
+
+async function loadFlashcards(subject = 'ALL') {
   try {
+    currentFcSubject = subject;
     const data = await api.getFlashcards(subject === 'ALL' ? null : subject);
-    activeFlashcards = data.flashcards || [];
+    allFlashcardsCache = data.flashcards || [];
+    activeFlashcards = allFlashcardsCache;
     currentFlashcardIndex = 0;
     isFlashcardFlipped = false;
+    renderFlashcardsGrid(activeFlashcards);
     renderCurrentFlashcard();
   } catch (err) {
-    fcMainText.textContent = `Error loading flashcards: ${err.message}`;
+    if (fcCardsGrid) fcCardsGrid.innerHTML = `<p style="color: var(--accent-red); padding: 1rem;">Error loading flashcards: ${err.message}</p>`;
+    if (fcMainText) fcMainText.textContent = `Error loading flashcards: ${err.message}`;
+  }
+}
+
+function filterFlashcardsBySubject(subj) {
+  currentFcSubject = subj;
+  [fcFilterAll, fcFilterDbms, fcFilterOs].forEach((b) => {
+    if (b) {
+      b.style.backgroundColor = 'var(--bg-card)';
+      b.style.color = 'var(--primary-dark)';
+    }
+  });
+
+  if (subj === 'ALL' && fcFilterAll) {
+    fcFilterAll.style.backgroundColor = 'var(--primary-dark)';
+    fcFilterAll.style.color = '#FFFFFF';
+  } else if (subj === 'DBMS' && fcFilterDbms) {
+    fcFilterDbms.style.backgroundColor = 'var(--primary-dark)';
+    fcFilterDbms.style.color = '#FFFFFF';
+  } else if (subj === 'OS' && fcFilterOs) {
+    fcFilterOs.style.backgroundColor = 'var(--primary-dark)';
+    fcFilterOs.style.color = '#FFFFFF';
+  }
+
+  loadFlashcards(subj);
+}
+
+function renderFlashcardsGrid(cards) {
+  if (!fcCardsGrid) return;
+  fcCardsGrid.innerHTML = '';
+  if (flashcardCounterBadge) {
+    flashcardCounterBadge.textContent = `Showing ${cards.length} Flashcards`;
+  }
+
+  if (cards.length === 0) {
+    fcCardsGrid.innerHTML = '<p style="color: var(--text-muted); padding: 1.5rem; text-align: center;">No flashcards found for this selection.</p>';
+    return;
+  }
+
+  cards.forEach((card, idx) => {
+    const tile = document.createElement('div');
+    tile.className = 'flashcard-grid-card';
+    tile.dataset.id = card.id;
+
+    // Header with badges
+    const header = document.createElement('div');
+    header.className = 'flashcard-grid-header';
+
+    const numBadge = document.createElement('span');
+    numBadge.style.fontSize = '0.78rem';
+    numBadge.style.fontWeight = '700';
+    numBadge.style.color = 'var(--text-muted)';
+    numBadge.textContent = `#${idx + 1}`;
+
+    const subjBadge = document.createElement('span');
+    subjBadge.className = `stat-pill ${card.subject === 'DBMS' ? 'stat-pill-pass' : 'stat-pill-accuracy'}`;
+    subjBadge.textContent = `${card.subject} • ${card.topic}`;
+
+    header.appendChild(numBadge);
+    header.appendChild(subjBadge);
+
+    // Question
+    const qEl = document.createElement('div');
+    qEl.className = 'flashcard-grid-question';
+    qEl.textContent = card.front;
+
+    // Solution container
+    const solContainer = document.createElement('div');
+    solContainer.className = 'fc-solution-block';
+    solContainer.style.display = areAllCardsFlipped ? 'block' : 'none';
+
+    const ansEl = document.createElement('div');
+    ansEl.className = 'flashcard-grid-answer';
+    ansEl.textContent = card.back;
+    solContainer.appendChild(ansEl);
+
+    if (card.keyFormula) {
+      const formEl = document.createElement('div');
+      formEl.className = 'flashcard-formula-badge';
+      formEl.textContent = `Key Theorem / Formula: ${card.keyFormula}`;
+      solContainer.appendChild(formEl);
+    }
+
+    if (card.examTip) {
+      const tipEl = document.createElement('div');
+      tipEl.className = 'flashcard-trap-box';
+      tipEl.textContent = `⚠️ Exam Trap: ${card.examTip}`;
+      solContainer.appendChild(tipEl);
+    }
+
+    // Rating Bar on Grid Card
+    const ratingRow = document.createElement('div');
+    ratingRow.style.display = 'flex';
+    ratingRow.style.gap = '0.35rem';
+    ratingRow.style.flexWrap = 'wrap';
+    ratingRow.style.marginTop = '0.6rem';
+    ratingRow.style.marginBottom = '0.4rem';
+
+    const ratingOptions = [
+      { id: 'again', label: '🔴 Again', tip: '<1m' },
+      { id: 'hard', label: '🟠 Hard', tip: '1d' },
+      { id: 'good', label: '🔵 Good', tip: '3d' },
+      { id: 'easy', label: '🟢 Easy', tip: '7d' }
+    ];
+
+    ratingOptions.forEach((ro) => {
+      const rBtn = document.createElement('button');
+      rBtn.className = `rate-btn rate-btn-${ro.id}`;
+      rBtn.style.padding = '0.25rem 0.55rem';
+      rBtn.style.fontSize = '0.74rem';
+      rBtn.textContent = ro.label;
+      rBtn.title = `Review in ${ro.tip}`;
+      rBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        await handleRateSingleCard(card, ro.id, rBtn);
+      });
+      ratingRow.appendChild(rBtn);
+    });
+    solContainer.appendChild(ratingRow);
+
+    // Actions row
+    const actions = document.createElement('div');
+    actions.className = 'fc-card-actions';
+
+    const flipBtn = document.createElement('button');
+    flipBtn.className = 'btn-outline';
+    flipBtn.style.fontSize = '0.8rem';
+    flipBtn.style.color = 'var(--primary-dark)';
+    flipBtn.style.borderColor = 'var(--primary-dark)';
+    flipBtn.textContent = areAllCardsFlipped ? '🔒 Hide Solution' : '🔄 Reveal Solution';
+
+    flipBtn.addEventListener('click', () => {
+      const isVisible = solContainer.style.display !== 'none';
+      solContainer.style.display = isVisible ? 'none' : 'block';
+      flipBtn.textContent = isVisible ? '🔄 Reveal Solution' : '🔒 Hide Solution';
+    });
+
+    const voiceBtn = document.createElement('button');
+    voiceBtn.className = 'btn-speech';
+    voiceBtn.style.fontSize = '0.75rem';
+    voiceBtn.style.padding = '0.2rem 0.5rem';
+    voiceBtn.textContent = '🔊 Listen';
+    voiceBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      speakText(`${card.front}. Answer: ${card.back}`);
+    });
+
+    actions.appendChild(flipBtn);
+    actions.appendChild(voiceBtn);
+
+    tile.appendChild(header);
+    tile.appendChild(qEl);
+    tile.appendChild(solContainer);
+    tile.appendChild(actions);
+
+    fcCardsGrid.appendChild(tile);
+  });
+}
+
+function toggleFlipAllCards() {
+  areAllCardsFlipped = !areAllCardsFlipped;
+  if (fcFlipAllBtn) {
+    fcFlipAllBtn.textContent = areAllCardsFlipped ? '🔒 Hide All' : '👁️ Flip All';
+  }
+  renderFlashcardsGrid(activeFlashcards);
+}
+
+async function handleRateSingleCard(card, rating, btn) {
+  try {
+    btn.disabled = true;
+    await api.rateFlashcard(card.id, rating, card.topic, card.subject);
+    const orig = btn.textContent;
+    btn.textContent = '✅ Saved';
+    setTimeout(() => {
+      btn.textContent = orig;
+      btn.disabled = false;
+    }, 1500);
+  } catch (err) {
+    alert(`Failed to save rating: ${err.message}`);
+    btn.disabled = false;
   }
 }
 
 function renderCurrentFlashcard() {
   if (activeFlashcards.length === 0) {
-    fcMainText.textContent = 'No flashcards available.';
+    if (fcMainText) fcMainText.textContent = 'No flashcards available.';
     return;
   }
 
   const card = activeFlashcards[currentFlashcardIndex];
-  flashcardCounterBadge.textContent = `Card ${currentFlashcardIndex + 1} of ${activeFlashcards.length}`;
-  fcTopicLabel.textContent = `${card.subject} / ${card.topic}`;
+  if (flashcardCounterBadge) {
+    flashcardCounterBadge.textContent = `Card ${currentFlashcardIndex + 1} of ${activeFlashcards.length}`;
+  }
+  if (fcTopicLabel) fcTopicLabel.textContent = `${card.subject} / ${card.topic}`;
 
   if (!isFlashcardFlipped) {
-    fcSideLabel.textContent = 'FRONT (QUESTION)';
-    fcMainText.textContent = card.front;
-    fcExtraBox.style.display = 'none';
-    fcRatingContainer.style.display = 'none';
+    if (fcSideLabel) fcSideLabel.textContent = 'FRONT (QUESTION)';
+    if (fcMainText) fcMainText.textContent = card.front;
+    if (fcExtraBox) fcExtraBox.style.display = 'none';
+    if (fcRatingContainer) fcRatingContainer.style.display = 'none';
   } else {
-    fcSideLabel.textContent = 'BACK (EXPLANATION & PROOF)';
-    fcMainText.textContent = card.back;
-    if (card.keyFormula) {
+    if (fcSideLabel) fcSideLabel.textContent = 'BACK (EXPLANATION & PROOF)';
+    if (fcMainText) fcMainText.textContent = card.back;
+    if (card.keyFormula && fcExtraBox && fcFormulaText) {
       fcExtraBox.style.display = 'block';
       fcFormulaText.textContent = card.keyFormula;
-    } else {
+    } else if (fcExtraBox) {
       fcExtraBox.style.display = 'none';
     }
-    fcRatingContainer.style.display = 'flex';
+    if (fcRatingContainer) fcRatingContainer.style.display = 'flex';
   }
 
-  fcPrevBtn.disabled = currentFlashcardIndex === 0;
-  fcNextBtn.disabled = currentFlashcardIndex === activeFlashcards.length - 1;
+  if (fcPrevBtn) fcPrevBtn.disabled = currentFlashcardIndex === 0;
+  if (fcNextBtn) fcNextBtn.disabled = currentFlashcardIndex === activeFlashcards.length - 1;
 }
 
 function toggleFlashcardFlip() {
