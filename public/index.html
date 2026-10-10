@@ -333,6 +333,21 @@
     </div>
   </div>
 
+  <!-- Footer with Legal Links (Rule 13.6) -->
+  <footer style="text-align: center; padding: 2rem; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid var(--border-color); margin-top: 3rem;">
+    <p>&copy; 2026 Study Buddy &bull; Built with MongoDB Atlas Cognitive Memory</p>
+    <div style="margin-top: 0.5rem; display: flex; justify-content: center; gap: 1.5rem;">
+      <a href="/privacy.html" style="color: var(--primary-dark); text-decoration: none;">Privacy Policy</a>
+      <a href="/terms.html" style="color: var(--primary-dark); text-decoration: none;">Terms of Service</a>
+    </div>
+  </footer>
+
+  <!-- Cookie Consent Notice (Rule 13.6) -->
+  <div id="cookie-banner" style="position: fixed; bottom: 0; left: 0; right: 0; background: var(--primary-dark); color: white; padding: 0.85rem 1.5rem; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; z-index: 999; box-shadow: 0 -2px 10px rgba(0,0,0,0.15);">
+    <span>Study Buddy uses essential session cookies to maintain your authenticated study state. No third-party ad tracking.</span>
+    <button onclick="document.getElementById('cookie-banner').style.display='none'" class="btn-outline" style="padding: 0.25rem 0.75rem; border-color: white; color: white;">Got it</button>
+  </div>
+
   <script src="app.js"></script>
 </body>
 </html>

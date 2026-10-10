@@ -304,3 +304,37 @@ npm start
 npm run stress:quick
 ```
 
+---
+
+## 🔒 13. Security, Privacy & Launch Hardening
+
+Study Buddy adheres to comprehensive security and user privacy standards (Section 13):
+- **Argon2id Password Hashing:** Memory-cost tuned (memoryCost: 19456, timeCost: 2, parallelism: 1) with Scrypt fallback. Includes `dummyVerifyPassword()` timing equalization against user enumeration.
+- **NIST SP 800-63B Password Policy:** 10 to 128 characters, reject common breach passwords (checked against `data/common-passwords.txt`), reject usernames.
+- **Server-Side Session Cookies:** Cryptographic 32-byte tokens (`base64url`), stored only as HMAC-SHA256 hashes in MongoDB. Rolled idle expiration (24h idle, max 7d absolute), capped to 5 active sessions per user. Uses `__Host-sid` prefix in production.
+- **CSRF & Anti-Bot Protection:** Strict content-type checking, origin matching against `SITE_URL` (or `X-Requested-With: study-buddy`), and HMAC-signed timestamp form tokens requiring a 3-second human delay before signup.
+- **NoSQL Operator Injection Defense:** Recursive key validation rejects any JSON keys containing `$` or `.`. Sanitizes strings with Unicode NFC normalization and strips control characters.
+- **Helmet Security Headers & Self-Hosted CSP:** Content Security Policy strictly locks scripts to `'self'`. Chart.js is self-hosted in `public/vendor/chart.umd.js` with zero third-party script loads.
+- **GDPR User Sovereignty:** Complete data export (`GET /api/account/export`) and password-verified cascading account deletion (`DELETE /api/account`) across all 7 collections.
+- **Audit Tooling:** Comprehensive verification suite run via `npm run audit:all`, outputting to `docs/security-audit.md`.
+
+---
+
+## 🎓 14. 10-Question Adaptive Quiz & Concept Teaching Hub
+
+### 10-Question Adaptive Quiz Engine
+- **Batch Quiz Generator (`POST /api/quiz/generate-set`):** Allows students to take a full 10-question adaptive exam across a specific topic or all topics in DBMS / OS.
+- **Interactive Quiz Runner:** Displays live progress (`Question X of 10`), progress bar, and instant evaluation with explanations and **Why This Question Was Chosen** memory transparency.
+- **Server-Side Integrity:** `correctIndex` is strictly withheld on the server until the student submits an answer.
+
+### Concept Teaching Hub (`POST /api/lessons/teach`)
+- **Memory-Driven Teaching:** When a student demonstrates recurring misconceptions, the AI Tutor inspects active weaknesses in MongoDB Atlas and delivers an in-depth concept breakdown:
+  1. **Cognitive Memory Diagnosis Alert:** Directly references the student's past quiz errors.
+  2. **The Big Picture & Intuitive Analogy:** Real-world engineering analogies.
+  3. **Core Mechanics & Technical Rules:** Rigorous theoretical foundations.
+  4. **Common Traps & Pitfalls:** Common exam mistakes.
+  5. **Worked Code & Architecture Diagrams:** Real SQL queries and system diagrams.
+  6. **Key Exam Takeaways:** Rapid-recall bullet points.
+  7. **One-Click Mastery Verification:** Direct transition to an adaptive quiz on that topic.
+
+
