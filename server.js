@@ -1,9 +1,10 @@
 // server.js
 // Main entry point for the Study Buddy application.
-// Hardened with Helmet security headers, Express rate limiting, metrics tracking,
-// and consistent error responses.
+// Hardened with Helmet security headers (CSP self-only), Express rate limiting,
+// NoSQL sanitization, request IDs, CORS, metrics tracking, and consistent error handling (Rule 13.1 - 13.5).
 
 import express from 'express';
+import crypto from 'crypto';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import helmet from 'helmet';
@@ -11,11 +12,14 @@ import rateLimit from 'express-rate-limit';
 
 import { env } from './src/config/env.js';
 import { connectDB, closeDB } from './src/db.js';
+import { logger } from './src/utils/logger.js';
 import { metricsMiddleware } from './src/middleware/metrics.js';
+import { sanitizeInputs } from './src/middleware/sanitize.js';
 import { errorHandler, notFoundHandler } from './src/middleware/errors.js';
 
 import healthRouter from './src/routes/health.js';
 import metricsRouter from './src/routes/metrics.js';
+import authRouter from './src/routes/auth.js';
 import progressRouter from './src/routes/progress.js';
 import studentsRouter from './src/routes/students.js';
 import sessionRouter from './src/routes/session.js';
@@ -29,27 +33,84 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-// 1. Enable trust proxy for platforms like Render, Heroku, or behind Cloudflare
+// 1. Disable X-Powered-By to prevent fingerprinting (Rule 13.2)
+app.disable('x-powered-by');
+
+// 2. Trust proxy (for reverse proxies, Render, Cloudflare, etc.)
 app.set('trust proxy', 1);
 
-// 2. Helmet HTTP Security Headers (with CSP configured to allow Chart.js from CDN)
+// 3. Request ID middleware (Rule 13.2)
+app.use((req, res, next) => {
+  const reqId = req.headers['x-request-id'] || crypto.randomUUID();
+  req.id = reqId;
+  res.setHeader('x-request-id', reqId);
+  next();
+});
+
+// 4. HTTPS redirect in production (Rule 13.8)
+if (env.NODE_ENV === 'production') {
+  app.use((req, res, next) => {
+    if (req.headers['x-forwarded-proto'] && req.headers['x-forwarded-proto'] !== 'https') {
+      return res.redirect(301, `https://${req.headers.host}${req.url}`);
+    }
+    next();
+  });
+}
+
+// 5. Helmet HTTP Security Headers (strict self-hosted CSP, HSTS, referrer policy) (Rules 13.1, 13.8)
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
+      scriptSrc: ["'self'"], // Chart.js is self-hosted in public/vendor/chart.umd.js (Rule 13.1c)
       styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", "data:"],
-      connectSrc: ["'self'"]
+      imgSrc: ["'self'", 'data:'],
+      connectSrc: ["'self'"],
+      fontSrc: ["'self'"],
+      objectSrc: ["'none'"],
+      baseUri: ["'self'"],
+      formAction: ["'self'"],
+      frameAncestors: ["'none'"]
     }
-  }
+  },
+  hsts: env.NODE_ENV === 'production' ? {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true
+  } : false,
+  referrerPolicy: { policy: 'strict-origin-when-cross-origin' }
 }));
 
-// 3. Metrics tracking middleware (records duration, errors, p50/p95 percentiles)
+// 6. CORS headers (Rules 13.5, 13.8)
+const allowedOrigins = env.ALLOWED_ORIGINS
+  ? env.ALLOWED_ORIGINS.split(',').map((o) => o.trim())
+  : [env.SITE_URL];
+
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin && (allowedOrigins.includes(origin) || allowedOrigins.includes('*'))) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-stress-bypass-limit, x-requested-with');
+  }
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+  next();
+});
+
+// 7. API Cache-Control: no-store, private (Rule 13.8)
+app.use('/api', (req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  res.setHeader('Pragma', 'no-cache');
+  next();
+});
+
+// 8. Metrics tracking middleware
 app.use(metricsMiddleware);
 
-// 4. Request timeout middleware: 30 seconds max duration
-// WHY: Resilience requirement. Prevents slow clients or hung downstream connections from holding server sockets indefinitely.
+// 9. Request timeout: 30 seconds max duration
 app.use((req, res, next) => {
   req.setTimeout(30000, () => {
     if (!res.headersSent) {
@@ -64,12 +125,15 @@ app.use((req, res, next) => {
   next();
 });
 
-// 4. Rate Limiting: 60 requests/min overall, 20 requests/min on /api/question
-// Concurrency rule: Header 'x-stress-bypass-limit: 1' skips limiter ONLY when STRESS_MODE=true
+// 10. Rate Limiters (Rules 13.1, 13.5)
+const isStressBypass = (req) => Boolean(
+  env.STRESS_MODE && env.NODE_ENV !== 'production' && req.headers['x-stress-bypass-limit'] === '1'
+);
+
 const globalLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 60,
-  skip: (req) => Boolean(env.STRESS_MODE && req.headers['x-stress-bypass-limit'] === '1'),
+  skip: isStressBypass,
   standardHeaders: true,
   legacyHeaders: false,
   message: {
@@ -83,7 +147,7 @@ const globalLimiter = rateLimit({
 const questionLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 20,
-  skip: (req) => Boolean(env.STRESS_MODE && req.headers['x-stress-bypass-limit'] === '1'),
+  skip: isStressBypass,
   standardHeaders: true,
   legacyHeaders: false,
   message: {
@@ -94,37 +158,76 @@ const questionLimiter = rateLimit({
   }
 });
 
-// 5. Liveness and metrics monitoring endpoints (unthrottled for monitoring/health probes)
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5,
+  skip: isStressBypass,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    error: {
+      code: 'RATE_LIMIT_EXCEEDED',
+      message: 'Too many login attempts. Please try again after 15 minutes.'
+    }
+  }
+});
+
+const signupLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 5,
+  skip: isStressBypass,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    error: {
+      code: 'RATE_LIMIT_EXCEEDED',
+      message: 'Too many accounts created from this IP. Please try again later.'
+    }
+  }
+});
+
+// 11. Health & metrics endpoints (unthrottled for monitoring)
 app.use('/api', healthRouter);
 app.use('/api', metricsRouter);
 
-// 6. Apply rate limits to API routes
+// 12. Rate limiting applied to API & Auth endpoints
 app.use('/api', globalLimiter);
+app.use('/api/auth/login', loginLimiter);
+app.use('/api/auth/signup', signupLimiter);
 app.use('/api/question', questionLimiter);
 
-// 7. Limit JSON request bodies to 10kb to prevent memory exhaustion attacks
+// 13. Limit JSON request bodies to 10kb to prevent memory exhaustion attacks (Rule 13.5)
 app.use(express.json({ limit: '10kb' }));
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
-// 8. Serve static frontend files from /public
+// 14. NoSQL operator injection and string sanitization (Rule 13.5)
+app.use(sanitizeInputs);
+
+// 15. Serve static frontend files from /public
 app.use(express.static(path.join(__dirname, 'public')));
 
-// 9. Mount API routes
+// 16. Mount API routes
+app.use('/api', authRouter);
 app.use('/api', progressRouter);
 app.use('/api', studentsRouter);
 app.use('/api', sessionRouter);
 app.use('/api', quizRouter);
 app.use('/api', memoriesRouter);
-app.use('/api', demoRouter);
 
-// Mount stress testing fault-injection routes ONLY when STRESS_MODE=true
-if (env.STRESS_MODE) {
+// Demo routes only if DEMO_MODE and not production (Rule 13.1b)
+if (env.DEMO_MODE && env.NODE_ENV !== 'production') {
+  app.use('/api', demoRouter);
+}
+
+// Stress testing fault-injection routes only if STRESS_MODE and not production (Rule 13.1b)
+if (env.STRESS_MODE && env.NODE_ENV !== 'production') {
   app.use('/api', stressRouter);
 }
 
-// 8. 404 Handler for unknown API endpoints
+// 17. 404 Handler for unknown API endpoints
 app.use('/api/*', notFoundHandler);
 
-// 9. Centralized Error Handler: ensures consistent { error: { code, message } } format
+// 18. Centralized Error Handler (Rule 13.2, 13.5)
 app.use(errorHandler);
 
 let server;
@@ -134,7 +237,7 @@ async function startServer() {
   try {
     await connectDB();
     server = app.listen(env.PORT, () => {
-      console.log(`🚀 Study Buddy server listening on http://localhost:${env.PORT}`);
+      logger.info(`Study Buddy server listening on http://localhost:${env.PORT}`);
       if (env.STRESS_MODE) {
         console.log('\n' + '!'.repeat(70));
         console.log('⚠️⚠️⚠️  WARNING: SERVER IS RUNNING IN STRESS_MODE!  ⚠️⚠️⚠️');
@@ -150,17 +253,17 @@ async function startServer() {
     server.requestTimeout = 30000;
     server.headersTimeout = 35000;
   } catch (err) {
-    console.error('Failed to start server:', err);
+    logger.error('Failed to start server:', err);
     process.exit(1);
   }
 }
 
 // Graceful shutdown: closes connections safely when stopping the app
 async function gracefulShutdown(signal) {
-  console.log(`\nReceived ${signal}. Shutting down gracefully...`);
+  logger.info(`Received ${signal}. Shutting down gracefully...`);
   if (server) {
     server.close(async () => {
-      console.log('HTTP server closed.');
+      logger.info('HTTP server closed.');
       await closeDB();
       process.exit(0);
     });

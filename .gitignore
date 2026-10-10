@@ -1,28 +1,32 @@
-# Environment variables (NEVER COMMIT SECRETS)
+# Environment variables and secrets (Strict Rule 13.2)
 .env
-*.env
-backend/.env
+.env.*
+!.env.example
 
 # Dependencies
 node_modules/
-__pycache__/
-*.py[cod]
-*$py.class
-venv/
-.venv/
-env/
 
-# Build artifacts
+# Logs and coverage
+*.log
+coverage/
+
+# Build and dist artifacts
 dist/
 build/
 .cache/
 
-# IDE files
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS files
+# OS and editor files
 .DS_Store
 Thumbs.db
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# Private keys and certificates
+*.pem
+*.key
+
+# Python artifacts
+__pycache__/
+*.pyc

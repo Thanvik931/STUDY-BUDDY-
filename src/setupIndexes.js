@@ -35,8 +35,8 @@ export async function setupAll() {
   const db = await connectDB();
 
   try {
-    // 1. Ensure other collections exist
-    const requiredCollections = ['students', 'memories', 'attempts', 'questions', 'topic_stats'];
+    // 1. Ensure all required collections exist (Rule 13.4)
+    const requiredCollections = ['users', 'sessions', 'admin_audit', 'memories', 'attempts', 'questions', 'topic_stats'];
     const existing = await db.listCollections().toArray();
     const existingNames = new Set(existing.map((c) => c.name));
 
@@ -59,7 +59,40 @@ export async function setupAll() {
       }
     }
 
-    // 2. Indexes for 'memories' collection
+    // 2. Indexes for 'users' collection (Rule 13.4, 13.10)
+    console.log('⚡ Creating indexes on "users"...');
+    await db.collection('users').createIndex(
+      { usernameLower: 1 },
+      { unique: true, name: 'users_unique_username_lower_idx' }
+    );
+
+    // 3. Indexes for 'sessions' collection (Rule 13.4, 13.10)
+    console.log('⚡ Creating indexes on "sessions"...');
+    await db.collection('sessions').createIndex(
+      { tokenHash: 1 },
+      { unique: true, name: 'sessions_unique_token_hash_idx' }
+    );
+    await db.collection('sessions').createIndex(
+      { userId: 1 },
+      { name: 'sessions_user_id_idx' }
+    );
+    await db.collection('sessions').createIndex(
+      { expiresAt: 1 },
+      { expireAfterSeconds: 0, name: 'sessions_ttl_idx' }
+    );
+
+    // 4. Indexes for 'admin_audit' collection (Rule 13.4)
+    console.log('⚡ Creating indexes on "admin_audit"...');
+    await db.collection('admin_audit').createIndex(
+      { timestamp: 1 },
+      { expireAfterSeconds: 7776000, name: 'admin_audit_90d_ttl_idx' } // 90-day retention
+    );
+    await db.collection('admin_audit').createIndex(
+      { adminId: 1, timestamp: -1 },
+      { name: 'admin_audit_admin_time_idx' }
+    );
+
+    // 5. Indexes for 'memories' collection
     console.log('⚡ Creating indexes on "memories"...');
     // Compound index for instant student-scoped queries
     await db.collection('memories').createIndex(
