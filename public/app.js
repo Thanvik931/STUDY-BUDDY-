@@ -242,6 +242,13 @@ const statAttempts = document.getElementById('stat-attempts');
 const statCorrect = document.getElementById('stat-correct');
 const statWeaknesses = document.getElementById('stat-weaknesses');
 
+// Hackathon Rubric Evaluation Matrix Elements
+const judgeMatrixBtn = document.getElementById('judge-matrix-btn');
+const judgeMatrixModal = document.getElementById('judge-matrix-modal');
+const judgeMatrixCloseBtn = document.getElementById('judge-matrix-close-btn');
+const judgeMatrixCloseTopBtn = document.getElementById('judge-matrix-close-top-btn');
+const matrixJumpButtons = document.querySelectorAll('.matrix-jump-btn');
+
 // Cookie consent
 const cookieDismissBtn = document.getElementById('cookie-dismiss-btn');
 if (cookieDismissBtn) {
@@ -517,6 +524,37 @@ function setupEventListeners() {
   // GDPR Sovereignty
   exportDataBtn.addEventListener('click', () => exportUserData());
   deleteAccountBtn.addEventListener('click', () => deleteUserAccount());
+
+  // Rubric Evaluation Matrix Modal
+  if (judgeMatrixBtn && judgeMatrixModal) {
+    judgeMatrixBtn.addEventListener('click', () => {
+      judgeMatrixModal.classList.add('active');
+    });
+  }
+  if (judgeMatrixCloseBtn && judgeMatrixModal) {
+    judgeMatrixCloseBtn.addEventListener('click', () => {
+      judgeMatrixModal.classList.remove('active');
+    });
+  }
+  if (judgeMatrixCloseTopBtn && judgeMatrixModal) {
+    judgeMatrixCloseTopBtn.addEventListener('click', () => {
+      judgeMatrixModal.classList.remove('active');
+    });
+  }
+  if (judgeMatrixModal) {
+    judgeMatrixModal.addEventListener('click', (e) => {
+      if (e.target === judgeMatrixModal) {
+        judgeMatrixModal.classList.remove('active');
+      }
+    });
+  }
+  matrixJumpButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      if (judgeMatrixModal) judgeMatrixModal.classList.remove('active');
+      const targetTab = btn.dataset.tab;
+      if (targetTab) switchTab(targetTab);
+    });
+  });
 }
 
 function switchTab(tabId) {

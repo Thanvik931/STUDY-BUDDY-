@@ -1,6 +1,6 @@
 # 🛡️ Study Buddy — Comprehensive Launch Security & Readiness Audit
-**Audit Date:** `2026-10-10T16:07:54.403Z`  
-**Git Commit:** `c6b277b`  
+**Audit Date:** `2026-10-10T20:09:58.965Z`  
+**Git Commit:** `9a00db0`  
 **Environment:** `Node.js v22.19.0` on Windows
 
 ---
@@ -95,13 +95,13 @@ EXPOSED FILES AUDIT: ALL CHECKS PASSED
   INTERNAL LINK & ASSET INTEGRITY AUDIT (Rule 13.7)
 ========================================================================
 
-• Asset resolved: style.css -> OK
+• Asset resolved: style.css?v=2.2 -> OK
 • Asset resolved: /vendor/chart.umd.js -> OK
 • Asset resolved: /terms.html -> OK
 • Asset resolved: /privacy.html -> OK
 • Asset resolved: /privacy.html -> OK
 • Asset resolved: /terms.html -> OK
-• Asset resolved: app.js -> OK
+• Asset resolved: app.js?v=2.2 -> OK
 • Asset resolved: style.css -> OK
 • Asset resolved: / -> OK
 • Asset resolved: style.css -> OK
@@ -109,7 +109,7 @@ EXPOSED FILES AUDIT: ALL CHECKS PASSED
 
 ========================================================================
 LINK & ASSET AUDIT: ALL CHECKS PASSED
-================================================
+====================================
 ... [truncated for report readability]
 ```
 
@@ -155,17 +155,17 @@ TAP version 13
     # Subtest: 1. Verified user lookup never leaks passwordHash
     ok 1 - 1. Verified user lookup never leaks passwordHash
       ---
-      duration_ms: 32.1532
+      duration_ms: 32.624
       type: 'test'
       ...
     # Subtest: 2. Account data export includes all student data and omits embeddings/tokenHashes
     ok 2 - 2. Account data export includes all student data and omits embeddings/tokenHashes
       ---
-      duration_ms: 125.0344
+      duration_ms: 374.115
       type: 'test'
       ...
     # Subtest: 3. Account deletion with incorrect password fails and leaves data intact
-    ok 3 - 3. Account deletio
+    ok 3 - 3. Account deletion 
 ... [truncated for report readability]
 ```
 

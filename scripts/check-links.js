@@ -29,10 +29,13 @@ function checkHtmlFile(filePath) {
       continue;
     }
 
+    // Strip query string if present (e.g. style.css?v=2.2)
+    const cleanRef = rawRef.split('?')[0];
+
     // Resolve path
-    const resolved = rawRef.startsWith('/')
-      ? path.join(publicDir, rawRef.substring(1))
-      : path.join(path.dirname(filePath), rawRef);
+    const resolved = cleanRef.startsWith('/')
+      ? path.join(publicDir, cleanRef.substring(1))
+      : path.join(path.dirname(filePath), cleanRef);
 
     if (!fs.existsSync(resolved)) {
       console.log(`❌ [BROKEN] ${relFile} references missing file: ${rawRef}`);
