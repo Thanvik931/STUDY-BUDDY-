@@ -1,7 +1,9 @@
-// src/middleware/metrics.js
-// Records request latency and error rates over a rolling window of the last 200 requests.
-// WHY: Performance observability. Enables tracking of p50 (median) and p95 latencies per route
-// to identify bottlenecks without adding external monitoring agents.
+import { monitorEventLoopDelay } from 'perf_hooks';
+
+// Event-loop delay histogram tracker (20ms resolution)
+// WHY: Resilience observability. Monitors event-loop lags to detect blocking operations or CPU pressure.
+const eldHistogram = monitorEventLoopDelay({ resolution: 20 });
+eldHistogram.enable();
 
 class MetricsTracker {
   constructor(windowSize = 200) {
@@ -86,4 +88,15 @@ export function metricsMiddleware(req, res, next) {
 
 export function getMetricsData() {
   return tracker.getSnapshot();
+}
+
+export function getEventLoopDelay() {
+  return {
+    min_ms: Number((eldHistogram.min / 1e6).toFixed(3)),
+    max_ms: Number((eldHistogram.max / 1e6).toFixed(3)),
+    mean_ms: Number((eldHistogram.mean / 1e6).toFixed(3)),
+    p50_ms: Number((eldHistogram.percentile(50) / 1e6).toFixed(3)),
+    p90_ms: Number((eldHistogram.percentile(90) / 1e6).toFixed(3)),
+    p99_ms: Number((eldHistogram.percentile(99) / 1e6).toFixed(3))
+  };
 }
