@@ -6,12 +6,13 @@
 
 import express from 'express';
 import { getDB } from '../db.js';
-import { requireStudent } from '../middleware/requireStudent.js';
+import { requireUser } from '../middleware/auth.js';
+import { csrfProtection } from '../middleware/csrf.js';
 import { buildOwnerFilter } from '../logic/filters.js';
 
 const router = express.Router();
 
-router.post('/session/start', requireStudent, async (req, res, next) => {
+router.post('/session/start', requireUser, csrfProtection, async (req, res, next) => {
   try {
     const db = getDB();
     const ownerId = req.ownerId;
@@ -37,14 +38,19 @@ router.post('/session/start', requireStudent, async (req, res, next) => {
     });
 
     // 3. Generate backend-written opener
-    let opener = `Welcome, ${req.student.name}! What subject would you like to practice today?`;
+    const studentName = req.user.displayName || req.user.username;
+    let opener = `Welcome, ${studentName}! What subject would you like to practice today?`;
     if (weakTopics.length > 0) {
       const primaryWeak = weakTopics[0];
       opener = `Last time ${primaryWeak.topic} was tricky. Let's start there.`;
     }
 
     res.status(200).json({
-      student: req.student,
+      student: {
+        _id: req.user._id.toString(),
+        name: studentName,
+        username: req.user.username
+      },
       opener,
       weakTopics
     });

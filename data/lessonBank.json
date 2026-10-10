@@ -1,0 +1,172 @@
+{
+  "sql-joins": {
+    "subject": "DBMS",
+    "topic": "sql-joins",
+    "title": "Mastering SQL Joins: Intuition, Syntax & Pitfalls",
+    "summary": "Joins combine columns from one or more tables based on a related column between them. Knowing which rows are preserved versus discarded is critical.",
+    "analogy": "Imagine two party RSVP lists: List A has guests who registered online, List B has people who actually checked in at the door. An INNER JOIN gives only people on BOTH lists. A LEFT JOIN gives everyone who registered, even if they never arrived (showing empty status for arrival). A FULL OUTER JOIN gives everyone who either registered, showed up at the door, or both.",
+    "coreMechanics": "1. INNER JOIN: Returns records that have matching values in BOTH tables.\n2. LEFT (OUTER) JOIN: Returns all records from the left table, plus matched records from the right table. If no match, right-side columns are filled with NULL.\n3. RIGHT (OUTER) JOIN: Returns all records from the right table, plus matched records from the left.\n4. FULL (OUTER) JOIN: Returns all records when there is a match in either left or right table. Unmatched attributes become NULL.\n5. CROSS JOIN: Cartesian product of all rows (M * N records).",
+    "commonPitfalls": "• Mistake: Assuming FULL OUTER JOIN drops non-matching rows. Reality: It retains ALL rows from both sides, replacing missing fields with NULL.\n• Mistake: Filtering in the WHERE clause instead of ON clause in an OUTER JOIN. Doing `WHERE right_table.status = 'active'` turns a LEFT JOIN into an INNER JOIN because NULLs get filtered out!",
+    "codeOrDiagram": "SELECT students.name, submissions.score\nFROM students\nLEFT JOIN submissions \n  ON students.id = submissions.student_id;\n-- Result: All students appear, even if they have zero submissions (score = NULL).",
+    "examTips": "If an exam question asks: 'How do you find students who have NEVER submitted an assignment?', use a LEFT JOIN where the right side primary key IS NULL: `WHERE submissions.id IS NULL`.",
+    "keyTakeaways": [
+      "INNER JOIN = Intersection (only matches).",
+      "LEFT JOIN = All Left + Matching Right (non-matching right = NULL).",
+      "FULL JOIN = Union of both (non-matching = NULL).",
+      "Never put right-table filters in the WHERE clause of a LEFT JOIN."
+    ]
+  },
+  "er-model-keys": {
+    "subject": "DBMS",
+    "topic": "er-model-keys",
+    "title": "Database Keys Hierarchy: Super, Candidate, Primary & Foreign",
+    "summary": "Keys are constraints that uniquely identify records in relations and establish referential integrity between tables.",
+    "analogy": "Think of identifying a citizen. A Super Key is like (SSN + Name + Eye Color) — it uniquely identifies you, but has extra unnecessary details. A Candidate Key is like just SSN — minimal and unique. The Primary Key is the one official document the government picks (e.g. Passport). A Foreign Key is your friend listing your SSN as their emergency contact.",
+    "coreMechanics": "1. Super Key: Any set of attributes that uniquely identifies a row. May contain redundant columns.\n2. Candidate Key: A MINIMAL Super Key with NO redundant attributes. Removing any single attribute breaks uniqueness.\n3. Primary Key: The single candidate key chosen by the database designer. Can NEVER contain NULL values.\n4. Foreign Key: A column that references the Primary Key of another table. CAN contain NULL values unless defined NOT NULL.",
+    "commonPitfalls": "• Mistake: Believing Foreign Keys cannot be NULL. Reality: Foreign Keys CAN contain NULL unless explicitly marked `NOT NULL`.\n• Mistake: Confusing Candidate Key with Super Key. Every Candidate Key is a Super Key, but NOT every Super Key is a Candidate Key.",
+    "codeOrDiagram": "Super Key ⊃ Candidate Key ⊃ Primary Key\n\nExample Table: Students(RollNo, Email, Phone, Name)\n- Super Keys: {RollNo}, {Email}, {RollNo, Name}, {Email, Phone}\n- Candidate Keys: {RollNo}, {Email}\n- Primary Key: {RollNo}\n- Foreign Key in Enrollments: (student_roll_no) REFERENCES Students(RollNo)",
+    "examTips": "To find Candidate Keys from Functional Dependencies, identify attributes that never appear on the Right-Hand Side (RHS) of any dependency — they MUST be part of every candidate key!",
+    "keyTakeaways": [
+      "Candidate Key = Minimal Super Key.",
+      "Primary Key = Selected Candidate Key (NO NULLs allowed).",
+      "Foreign Key = Referential link (CAN be NULL).",
+      "Attributes not on RHS of FDs are mandatory in every candidate key."
+    ]
+  },
+  "normalization": {
+    "subject": "DBMS",
+    "topic": "normalization",
+    "title": "Database Normalization: 1NF, 2NF, 3NF & BCNF",
+    "summary": "Normalization decomposes tables to eliminate data redundancy, prevent update/insertion/deletion anomalies, and preserve data integrity.",
+    "analogy": "Think of writing a receipt. If you write the customer's home address next to every single item they bought, you waste paper and if they move, you have to update 100 rows. Normalization splits this into a Customers table (name, address) and an Orders table (customer_id, item).",
+    "coreMechanics": "1. 1NF (First Normal Form): All column values must be atomic (no multi-valued arrays or composite lists).\n2. 2NF: Must be in 1NF AND have NO partial dependencies (no non-prime attribute can depend on a proper subset of any candidate key).\n3. 3NF: Must be in 2NF AND have NO transitive dependencies (no non-prime attribute determines another non-prime attribute; X -> Y requires X is Super Key or Y is Prime attribute).\n4. BCNF (Boyce-Codd Normal Form): Strict 3NF where for EVERY functional dependency X -> Y, X MUST be a Super Key.",
+    "commonPitfalls": "• Mistake: Checking 2NF when the candidate key is only 1 attribute. Reality: If the candidate key is a single attribute (not composite), 2NF is automatically satisfied!\n• Mistake: Forgetting that BCNF does not guarantee dependency preservation while 3NF does.",
+    "codeOrDiagram": "Anomalies in unnormalized tables:\n- Insertion Anomaly: Cannot insert a course without an enrolled student.\n- Deletion Anomaly: Deleting the last student deletes the entire course record.\n- Update Anomaly: Changing instructor phone requires updating 1,000 rows.",
+    "examTips": "If asked whether 3NF or BCNF is always lossless and dependency-preserving: 3NF is always lossless AND dependency-preserving. BCNF is lossless, but NOT always dependency-preserving.",
+    "keyTakeaways": [
+      "1NF: Atomic values only.",
+      "2NF: No partial dependency (relevant only with composite keys).",
+      "3NF: No transitive dependency (X is superkey OR Y is prime).",
+      "BCNF: For every X -> Y, X MUST be a superkey."
+    ]
+  },
+  "transactions-acid": {
+    "subject": "DBMS",
+    "topic": "transactions-acid",
+    "title": "Transactions & ACID Properties in Database Systems",
+    "summary": "A transaction is a logical unit of database processing consisting of one or more database operations.",
+    "analogy": "Transferring $100 from Account A to Account B requires two steps: deduct $100 from A, add $100 to B. If the power cuts out between step 1 and 2, $100 disappears! ACID guarantees that either BOTH steps happen or NEITHER happens.",
+    "coreMechanics": "1. Atomicity: All or nothing. Managed by Recovery Manager using Write-Ahead Logging (WAL).\n2. Consistency: Database moves from one valid state to another satisfying all schema constraints.\n3. Isolation: Concurrent transactions execute without interfering with each other. Managed by Concurrency Control (Locking, 2PL, MVCC).\n4. Durability: Once committed, changes survive server crashes and power outages. Guaranteed via WAL / disk flushing.",
+    "commonPitfalls": "• Mistake: Confusing Isolation levels. Read Uncommitted allows Dirty Reads. Read Committed prevents Dirty Reads. Repeatable Read prevents Non-Repeatable Reads. Serializable prevents Phantom Reads.",
+    "codeOrDiagram": "ACID Implementation Mechanisms:\n- Atomicity: Undo log (WAL)\n- Consistency: Application logic + Integrity constraints\n- Isolation: 2-Phase Locking (2PL), MVCC\n- Durability: Redo log (WAL) flushed to non-volatile disk",
+    "examTips": "Remember the hierarchy of read phenomena: Dirty Read -> Non-Repeatable Read -> Phantom Read. Serializable is the only isolation level that prevents all three.",
+    "keyTakeaways": [
+      "Atomicity = Undo log (all or nothing).",
+      "Durability = Redo log (survives crashes).",
+      "Isolation Levels: Read Uncommitted < Read Committed < Repeatable Read < Serializable.",
+      "Write-Ahead Logging: Write log record to disk BEFORE writing modified page."
+    ]
+  },
+  "indexing": {
+    "subject": "DBMS",
+    "topic": "indexing",
+    "title": "Database Indexing: B-Trees, B+ Trees & Query Performance",
+    "summary": "An index is an auxiliary data structure that enables fast record retrieval without scanning the entire table (O(log N) vs O(N)).",
+    "analogy": "Imagine looking up a term in a 1,000-page textbook. Without an index, you must read every single page from cover to cover (Full Table Scan). With an index at the back of the book, you look up the word alphabetically and flip straight to page 342.",
+    "coreMechanics": "1. B+ Tree: The industry standard index. Leaf nodes contain all keys and pointers to data, linked sequentially for lightning-fast range scans. Internal nodes store only search keys.\n2. Clustered Index: Determines the physical storage order of rows on disk. Only ONE clustered index per table (typically Primary Key).\n3. Non-Clustered (Secondary) Index: Separate structure whose leaf nodes point to the clustered index key or row locator.\n4. Hash Index: O(1) point lookups, but CANNOT perform range queries (<, >, BETWEEN).",
+    "commonPitfalls": "• Mistake: Thinking more indexes are always better. Reality: Every index slows down INSERT, UPDATE, and DELETE operations because all index trees must be modified!\n• Mistake: Trying to use a Hash Index for `WHERE age > 25`. Hash indexes do not preserve order.",
+    "codeOrDiagram": "B+ Tree vs B-Tree:\n- B-Tree stores data pointers in internal AND leaf nodes.\n- B+ Tree stores data pointers ONLY in leaf nodes. All leaves are linked via a doubly linked list, making range queries O(log N + k).",
+    "examTips": "Why are B+ Trees preferred over Binary Search Trees (BST) in databases? Because B+ Trees have very large fan-out (thousands of keys per node), reducing tree height to 3-4 levels and minimizing expensive disk I/O.",
+    "keyTakeaways": [
+      "B+ Tree = Standard DB index; leaves are sequentially linked for range scans.",
+      "Only 1 Clustered Index per table (physical order).",
+      "Indexes speed up reads (SELECT) but slow down writes (INSERT/UPDATE/DELETE).",
+      "High fan-out reduces disk block I/O operations."
+    ]
+  },
+  "process-scheduling": {
+    "subject": "OS",
+    "topic": "process-scheduling",
+    "title": "CPU Process Scheduling: Algorithms, Preemption & Metrics",
+    "summary": "Process scheduling selects which ready process in memory is allocated the CPU core to maximize utilization and minimize turnaround time.",
+    "analogy": "Imagine a bank counter with 1 teller. FCFS serves people in line order. SJF serves the person with a 1-minute transaction first so the queue clears faster. Round Robin gives each person in line exactly 2 minutes before sending them to the back of the line so nobody starves.",
+    "coreMechanics": "1. FCFS (First-Come, First-Served): Non-preemptive. Suffers from Convoy Effect (short processes waiting behind a huge CPU-bound process).\n2. SJF (Shortest Job First): Provably optimal average waiting time. Impossible to implement perfectly in practice because future CPU burst length cannot be known in advance.\n3. SRTF (Shortest Remaining Time First): Preemptive version of SJF.\n4. Round Robin (RR): Time quantum allocated per process. Fair, prevents starvation. If quantum is huge, becomes FCFS; if quantum is tiny, context switch overhead dominates.\n5. Priority Scheduling: High priority first; solve starvation via Aging (gradually increasing priority of waiting processes).",
+    "commonPitfalls": "• Mistake: Confusing Turnaround Time and Waiting Time.\n  - Turnaround Time = Completion Time - Arrival Time.\n  - Waiting Time = Turnaround Time - Burst Time.",
+    "codeOrDiagram": "Metrics Cheat Sheet:\nTurnaround Time (TAT) = Completion Time (CT) - Arrival Time (AT)\nWaiting Time (WT) = TAT - Burst Time (BT)\nResponse Time (RT) = First CPU Time - Arrival Time",
+    "examTips": "If asked which algorithm guarantees the MINIMUM average waiting time for a given set of processes: The answer is SJF (non-preemptive) or SRTF (preemptive).",
+    "keyTakeaways": [
+      "Convoy Effect occurs in FCFS when short jobs queue behind a long job.",
+      "SJF has optimal average waiting time but cannot predict future burst.",
+      "Round Robin uses time slicing; prevents starvation.",
+      "Aging solves starvation in priority scheduling."
+    ]
+  },
+  "deadlocks": {
+    "subject": "OS",
+    "topic": "deadlocks",
+    "title": "Deadlocks: Coffman Conditions, Prevention & Banker's Algorithm",
+    "summary": "A deadlock is a situation where a set of processes are blocked because each process holds a resource and waits for another resource held by another process.",
+    "analogy": "Four cars arrive simultaneously at a 4-way intersection without stoplights. Each car moves halfway into the intersection, blocking the car to its left. No car can move forward until the car in front moves. All 4 are stuck forever.",
+    "coreMechanics": "The 4 Coffman Conditions (ALL must hold for a deadlock to occur):\n1. Mutual Exclusion: At least one resource is non-shareable.\n2. Hold and Wait: A process holds at least one resource while waiting for others.\n3. No Preemption: Resources cannot be forcibly taken away; only released voluntarily.\n4. Circular Wait: P0 waits for P1, P1 waits for P2... Pn waits for P0.\n\nHandling Strategies:\n• Prevention: Invalidate at least one Coffman condition (e.g., impose resource ordering to break Circular Wait).\n• Avoidance: Use Banker's Algorithm to verify system stays in a Safe State before granting requests.\n• Detection & Recovery: Allow deadlocks, detect cycles with Wait-For Graphs, terminate processes to recover.\n• Ignorance: Ostrich Algorithm (used by most modern OSs like Linux and Windows).",
+    "commonPitfalls": "• Mistake: Assuming an unsafe state is always deadlocked. Reality: An unsafe state is NOT necessarily a deadlock! It just means the OS cannot guarantee avoiding one if all processes request max resources simultaneously.",
+    "codeOrDiagram": "Banker's Algorithm Core Matrices:\nNeed[i][j] = Max[i][j] - Allocation[i][j]\nSafety Test: Find process Pi where Need[i] <= Available. If found, finish Pi and add Allocation[i] to Available. Repeat. If all finish, State is SAFE.",
+    "examTips": "Breaking Circular Wait is the most practical deadlock prevention method: Assign a global integer order to all resources and require processes to request resources in strictly increasing numerical order.",
+    "keyTakeaways": [
+      "Deadlock requires ALL 4 Coffman conditions simultaneously.",
+      "Resource ordering breaks Circular Wait.",
+      "Safe State = System can allocate max resources to everyone in some sequence without deadlock.",
+      "Unsafe state does NOT mean deadlock has occurred; it means deadlock is possible."
+    ]
+  },
+  "memory-paging": {
+    "subject": "OS",
+    "topic": "memory-paging",
+    "title": "Virtual Memory & Paging: Address Translation, TLB & Page Faults",
+    "summary": "Paging is a memory management scheme that eliminates external fragmentation by mapping non-contiguous physical memory frames into contiguous virtual address pages.",
+    "analogy": "Imagine an apartment building where an author writes chapters of a book. Physical chapters are stored in random empty lockers across the basement. The author has a table of contents (Page Table) mapping Chapter 1 -> Locker 12, Chapter 2 -> Locker 4. The author reads smoothly without caring where the physical lockers are.",
+    "coreMechanics": "1. Virtual Address Split: Logical address is split into Page Number (p) and Offset (d).\n2. Page Table: Maps Page Number (p) to Physical Frame Number (f). Physical Address = Frame Number (f) + Offset (d).\n3. TLB (Translation Lookaside Buffer): Fast hardware associative cache for page translations. TLB Hit = 1 memory access; TLB Miss = 2 memory accesses (Page table + data).\n4. Page Fault: Occurs when a referenced page is marked invalid (not currently in physical RAM). Triggers an OS trap to fetch the page from disk swap space.\n5. Replacement Algorithms: FIFO, Optimal (Belady's), LRU (Least Recently Used).",
+    "commonPitfalls": "• Mistake: Believing paging causes external fragmentation. Reality: Paging eliminates external fragmentation completely! However, the last page allocated may suffer from internal fragmentation.\n• Mistake: Believing Belady's Anomaly affects LRU. Reality: Belady's Anomaly (more frames -> more page faults) affects FIFO, NEVER LRU or Optimal (Stack algorithms).",
+    "codeOrDiagram": "Effective Access Time (EAT) Formula:\nEAT = Hit_Ratio * (TLB_access + RAM_access) + (1 - Hit_Ratio) * (TLB_access + 2 * RAM_access)\n\nWith Page Faults:\nEAT = (1 - p) * Memory_Access_Time + p * Page_Fault_Service_Time",
+    "examTips": "Belady's Anomaly occurs only in FIFO replacement, where increasing the number of physical page frames paradoxically INCREASES the number of page faults.",
+    "keyTakeaways": [
+      "Paging eliminates External Fragmentation; may cause Internal Fragmentation.",
+      "Logical Address = Page Number (p) + Offset (d).",
+      "Page Fault triggers disk I/O to load frame into RAM.",
+      "LRU is immune to Belady's Anomaly; FIFO is susceptible."
+    ]
+  },
+  "synchronization": {
+    "subject": "OS",
+    "topic": "synchronization",
+    "title": "Process Synchronization: Critical Section, Mutex & Semaphores",
+    "summary": "Synchronization coordinates concurrent processes accessing shared resources to avoid race conditions and preserve data consistency.",
+    "analogy": "Imagine a single restroom on an airplane. Only one person can be inside at a time (Mutual Exclusion). If it's free, whoever knocks can enter (Progress). Nobody waits outside forever while others repeatedly cut in line (Bounded Waiting). A key lock on the door is a Mutex.",
+    "coreMechanics": "1. Race Condition: When multiple processes read/write shared data and the final outcome depends on the timing/order of execution.\n2. Critical Section Requirements:\n   - Mutual Exclusion: Only 1 process in critical section at a time.\n   - Progress: If none is in, only waiting processes decide who enters next.\n   - Bounded Waiting: Bound on how many times others can enter before a waiting process is admitted.\n3. Mutex vs Semaphore:\n   - Mutex: Binary locking mechanism owned by the locking thread.\n   - Counting Semaphore: Integer counter initialized to N; `wait()` decrements, `signal()` increments. Used for resource pools.\n4. Classic Problems: Producer-Consumer (Bounded Buffer), Readers-Writers, Dining Philosophers.",
+    "commonPitfalls": "• Mistake: Busy waiting (Spinlocks). A while loop burning CPU cycles checking a flag. Counting semaphores solve this by putting waiting processes to sleep on a wait queue.",
+    "codeOrDiagram": "Semaphore Operations (Atomic):\nwait(S) {\n  while (S <= 0); // or block thread\n  S--;\n}\nsignal(S) {\n  S++; // and unblock waiting thread\n}",
+    "examTips": "In the Producer-Consumer problem, you need 3 semaphores: `mutex` (binary, protects buffer), `empty` (initialized to buffer capacity N), and `full` (initialized to 0).",
+    "keyTakeaways": [
+      "Race condition happens when output depends on execution scheduling.",
+      "Critical Section requires Mutual Exclusion, Progress, and Bounded Waiting.",
+      "Mutex = 1 owner lock.",
+      "Semaphore = Counter for resource pooling (`wait` = P, `signal` = V)."
+    ]
+  },
+  "file-systems": {
+    "subject": "OS",
+    "topic": "file-systems",
+    "title": "File Systems: Inodes, Allocation Methods & Disk Scheduling",
+    "summary": "File systems provide persistent storage abstraction, directory mapping, and efficient disk block allocation and retrieval.",
+    "analogy": "A library catalog card. The card (Inode) doesn't contain the full text of the book; it contains the book title, author, permissions, and the exact shelf numbers where Volume 1, Volume 2, and Volume 3 are stored.",
+    "coreMechanics": "1. Inode (Index Node): Data structure storing file metadata (size, owner, permissions, timestamps) and direct/indirect block pointers. Does NOT store filename (filename is in directory entries!).\n2. Allocation Methods:\n   - Contiguous: Fast sequential access, but suffers from external fragmentation and file growth limits.\n   - Linked: No external fragmentation, but slow random access (must traverse pointers).\n   - Indexed (Unix Inode): Leaf pointers for direct blocks + Single/Double/Triple indirect blocks for huge files.\n3. Disk Scheduling: FCFS, SSTF (Shortest Seek Time First - starvation possible), SCAN (Elevator algorithm), C-SCAN (Circular SCAN - uniform wait time).",
+    "commonPitfalls": "• Mistake: Believing an Inode stores the filename. Reality: Filenames are stored inside the directory file, paired with the inode number (`name -> inode_number`).",
+    "codeOrDiagram": "Unix Inode Structure:\n- 12 Direct Pointers (pointing directly to data blocks)\n- 1 Single Indirect Pointer (points to block of pointers)\n- 1 Double Indirect Pointer\n- 1 Triple Indirect Pointer (allows multi-terabyte files)",
+    "examTips": "C-SCAN (Circular SCAN) is designed to provide more uniform waiting times than SCAN by servicing requests in one direction only, then returning immediately to the beginning without servicing requests on the return trip.",
+    "keyTakeaways": [
+      "Inodes store metadata and block pointers, NOT the filename.",
+      "Indexed allocation (Inodes) supports fast random access and large files.",
+      "SCAN (Elevator) sweeps back and forth; C-SCAN sweeps in one direction.",
+      "Hard links share the same Inode; soft (symbolic) links have their own Inode pointing to a path."
+    ]
+  }
+}

@@ -5,11 +5,11 @@
 
 import express from 'express';
 import { getDB } from '../db.js';
-import { requireStudent } from '../middleware/requireStudent.js';
+import { requireUser } from '../middleware/auth.js';
 
 const router = express.Router();
 
-router.get('/progress', requireStudent, async (req, res, next) => {
+router.get('/progress', requireUser, async (req, res, next) => {
   try {
     const db = getDB();
     const ownerId = req.ownerId;

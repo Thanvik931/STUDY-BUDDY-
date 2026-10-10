@@ -1,32 +1,18 @@
 // public/api.js
 // Client-side API service.
-// WHY: Centralizes all HTTP communication with the backend. Automatically attaches
-// the active student ID in the x-student-id header and parses standardized error shapes.
-
-const STORAGE_KEY = 'study_buddy_student_id';
+// WHY: Centralizes all HTTP communication with the backend.
+// Passes CSRF headers ('X-Requested-With: study-buddy') and credentials for server-side cookies.
 
 export const api = {
-  getStoredStudentId() {
-    return localStorage.getItem(STORAGE_KEY) || '';
-  },
-
-  setStoredStudentId(id) {
-    if (id) {
-      localStorage.setItem(STORAGE_KEY, id);
-    } else {
-      localStorage.removeItem(STORAGE_KEY);
-    }
-  },
-
   async request(endpoint, options = {}) {
-    const studentId = this.getStoredStudentId();
     const headers = {
       'Content-Type': 'application/json',
-      ...(studentId ? { 'x-student-id': studentId } : {}),
+      'X-Requested-With': 'study-buddy',
       ...(options.headers || {})
     };
 
     const response = await fetch(endpoint, {
+      credentials: 'same-origin',
       ...options,
       headers
     });
@@ -44,15 +30,49 @@ export const api = {
     return data;
   },
 
-  // Students
-  getStudents() {
-    return this.request('/api/students');
+  // Auth & Account
+  async getMe() {
+    return this.request('/api/auth/me');
   },
 
-  createStudent(name) {
-    return this.request('/api/students', {
+  async getFormToken() {
+    return this.request('/api/auth/form-token');
+  },
+
+  async signup(username, displayName, password) {
+    const { formToken } = await this.getFormToken();
+    // Wait 3.1 seconds to satisfy the >= 3s anti-bot requirement
+    await new Promise((resolve) => setTimeout(resolve, 3100));
+
+    return this.request('/api/auth/signup', {
       method: 'POST',
-      body: JSON.stringify({ name })
+      body: JSON.stringify({
+        username,
+        displayName,
+        password,
+        acceptTerms: true,
+        formToken
+      })
+    });
+  },
+
+  async login(username, password) {
+    return this.request('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ username, password })
+    });
+  },
+
+  async logout() {
+    return this.request('/api/auth/logout', {
+      method: 'POST'
+    });
+  },
+
+  async deleteAccount(password) {
+    return this.request('/api/account', {
+      method: 'DELETE',
+      body: JSON.stringify({ password })
     });
   },
 
@@ -63,11 +83,18 @@ export const api = {
     });
   },
 
-  // Quiz
+  // Adaptive Quiz
   getQuestion(subject, topic) {
     return this.request('/api/question', {
       method: 'POST',
       body: JSON.stringify({ subject, topic })
+    });
+  },
+
+  generateQuizSet(subject, topic, count = 10) {
+    return this.request('/api/quiz/generate-set', {
+      method: 'POST',
+      body: JSON.stringify({ subject, topic, count })
     });
   },
 
@@ -78,7 +105,19 @@ export const api = {
     });
   },
 
-  // Memories
+  // Concept Lessons
+  getRecommendedLessons() {
+    return this.request('/api/lessons/recommended');
+  },
+
+  teachLesson(subject, topic) {
+    return this.request('/api/lessons/teach', {
+      method: 'POST',
+      body: JSON.stringify({ subject, topic })
+    });
+  },
+
+  // Cognitive Memories
   getMemories(skip = 0, limit = 50) {
     return this.request(`/api/memories?skip=${skip}&limit=${limit}`);
   },

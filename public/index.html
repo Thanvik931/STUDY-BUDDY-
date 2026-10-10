@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Study Buddy — Adaptive Engineering Tutor</title>
+  <title>Study Buddy — Adaptive Engineering AI Companion</title>
   <link rel="stylesheet" href="style.css">
-  <!-- Chart.js from CDN (allowed by Content Security Policy) -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Self-hosted Chart.js (Strict CSP Rule 13.1c: script-src 'self') -->
+  <script src="/vendor/chart.umd.js"></script>
 </head>
 <body>
 
@@ -16,19 +16,22 @@
       <span class="logo-icon">🌿</span>
       <div class="logo-text">
         <h1>Study Buddy</h1>
-        <p>MongoDB Agentic Memory Engine (Track 1)</p>
+        <p>Adaptive Engineering Companion &bull; MongoDB Cognitive Memory Engine</p>
       </div>
     </div>
     <div class="student-bar">
       <span>Student:</span>
-      <span id="current-student-badge" class="badge-student">No student selected</span>
-      <button id="switch-student-btn" class="btn-outline">Switch Student</button>
+      <span id="current-student-badge" class="badge-student">Connecting...</span>
+      <button id="switch-student-btn" class="btn-outline">Switch / Login</button>
+      <button id="export-data-btn" class="btn-outline" title="Export my data as JSON">📥 Export Data</button>
+      <button id="delete-account-btn" class="btn-outline" style="border-color: #F87171; color: #FCA5A5;" title="Delete account and all memories">🗑️ Delete Account</button>
     </div>
   </header>
 
-  <!-- 3 Navigation Tabs -->
+  <!-- 4 Navigation Tabs -->
   <nav class="tabs-nav">
-    <button class="tab-btn active" data-tab="quiz">🎯 Quiz & Learning</button>
+    <button class="tab-btn active" data-tab="quiz">🎯 Adaptive Quiz (10 Questions)</button>
+    <button class="tab-btn" data-tab="lessons">📖 Teach Concepts & Lessons</button>
     <button class="tab-btn" data-tab="memories">🧠 Cognitive Memory</button>
     <button class="tab-btn" data-tab="progress">📊 Progress & Trends</button>
   </nav>
@@ -40,11 +43,15 @@
     <section id="tab-quiz" class="tab-panel active">
       <!-- Session Opener Banner -->
       <div id="opener-banner" class="opener-banner">
-        Loading personalized session insights...
+        Loading personalized session insights from MongoDB Cognitive Memory...
       </div>
 
       <!-- Subject & Topic Controls -->
       <div class="card">
+        <h2 class="card-title" style="margin-bottom: 0.5rem;">Adaptive Question Generator</h2>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+          Select a subject and topic to generate questions adapted to your cognitive memory and past performance.
+        </p>
         <div class="controls-grid">
           <div>
             <label for="select-subject">Subject</label>
@@ -59,16 +66,33 @@
               <!-- Dynamically populated based on subject -->
             </select>
           </div>
-          <div>
-            <button id="fetch-question-btn" class="btn-primary">Get Question</button>
+          <div style="display: flex; gap: 0.5rem; align-items: flex-end;">
+            <button id="start-batch-quiz-btn" class="btn-primary" style="background-color: var(--primary-dark); font-weight: 700;">
+              🚀 Start 10-Question Quiz
+            </button>
+            <button id="fetch-single-question-btn" class="btn-outline" style="color: var(--primary-dark); border-color: var(--primary-dark);">
+              ⚡ Single Question
+            </button>
           </div>
         </div>
       </div>
 
       <!-- Active Question Card -->
       <div id="question-card" class="card" style="display: none;">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
+        <!-- Question Progress Bar for 10-Question Set -->
+        <div id="quiz-progress-header" style="display: none;">
+          <div style="display: flex; justify-content: space-between; font-size: 0.82rem; font-weight: 700; color: var(--primary-dark);">
+            <span id="quiz-step-indicator">Question 1 of 10</span>
+            <span id="quiz-score-indicator">Current Score: 0/0</span>
+          </div>
+          <div class="progress-bar-container">
+            <div id="quiz-progress-fill" class="progress-bar-fill"></div>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
           <span id="question-difficulty-badge" class="badge badge-preference">MEDIUM</span>
+          <span id="question-topic-badge" class="badge badge-preference" style="background-color: var(--bg-card-alt); color: var(--primary-dark);">Topic</span>
           <span id="degraded-notice" class="degraded-badge" style="display: none;">Curated Fallback</span>
         </div>
 
@@ -76,30 +100,147 @@
 
         <div id="options-container" class="options-list"></div>
 
-        <button id="submit-answer-btn" class="btn-primary" disabled>Submit Answer</button>
+        <div style="display: flex; gap: 0.75rem; margin-top: 1rem;">
+          <button id="submit-answer-btn" class="btn-primary" disabled>Submit Answer</button>
+          <button id="next-question-btn" class="btn-primary" style="display: none; background-color: var(--primary-light);">
+            Next Question ➔
+          </button>
+        </div>
 
         <!-- Feedback & Explanation Box -->
         <div id="feedback-box" class="feedback-box" style="display: none;"></div>
 
-        <!-- Why This Question (Transparency & Agentic Memory Explanation) -->
+        <!-- Why This Question (Agentic Memory Transparency) -->
         <div id="why-box" class="why-box" style="display: none;">
           <div class="why-header">
-            <span>🧠 Why this question was chosen:</span>
+            <span>🧠 Why this question was chosen (MongoDB Agentic Memory):</span>
           </div>
           <p id="why-text"></p>
           <div id="why-breakdown" style="margin-top: 0.5rem; font-family: monospace; font-size: 0.78rem;"></div>
         </div>
       </div>
+
+      <!-- 10-Question Quiz Complete Summary Box -->
+      <div id="quiz-summary-card" class="card" style="display: none;">
+        <div class="quiz-summary-box">
+          <h2 style="color: var(--primary-dark); font-size: 1.5rem; margin-bottom: 0.25rem;">🎉 Quiz Completed!</h2>
+          <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem;">
+            Here is your performance breakdown and cognitive memory diagnosis:
+          </p>
+          <div id="summary-score-value" class="quiz-summary-score">8 / 10 (80%)</div>
+          <p id="summary-memory-impact" style="font-size: 0.95rem; margin-bottom: 1.25rem; font-weight: 500;">
+            MongoDB Agentic Memory updated: Strengthened topics and diagnosed priority concepts to review.
+          </p>
+          <div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+            <button id="teach-weakness-btn" class="btn-primary" style="background-color: #B45309; font-weight: 700;">
+              🎓 Teach Me My Weakest Concept Now
+            </button>
+            <button id="restart-quiz-btn" class="btn-outline" style="color: var(--primary-dark); border-color: var(--primary-dark);">
+              🔄 Retake Another Quiz
+            </button>
+          </div>
+        </div>
+      </div>
     </section>
 
-    <!-- ================= TAB 2: MEMORIES TAB ================= -->
+    <!-- ================= TAB 2: TEACH CONCEPTS & LESSONS TAB (NEW) ================= -->
+    <section id="tab-lessons" class="tab-panel">
+      <!-- Recommendations based on Cognitive Memory -->
+      <div class="card" style="margin-bottom: 1.25rem;">
+        <h2 class="card-title" style="margin-bottom: 0.25rem;">Recommended Concept Lessons for You</h2>
+        <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+          Based on weaknesses and mistakes recorded in your MongoDB Atlas Cognitive Memory:
+        </p>
+        <div id="recommended-chips" class="lesson-chip-grid">
+          <span style="font-size: 0.85rem; color: var(--text-muted);">Analyzing past quiz attempts...</span>
+        </div>
+      </div>
+
+      <!-- Lesson Selector Controls -->
+      <div class="card">
+        <h2 class="card-title" style="margin-bottom: 0.5rem;">Interactive Engineering Lessons Hub</h2>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+          Select any concept below to get an in-depth breakdown with intuitions, mechanics, pitfalls, and code:
+        </p>
+        <div class="controls-grid">
+          <div>
+            <label for="lesson-subject">Subject</label>
+            <select id="lesson-subject">
+              <option value="DBMS">Database Management Systems (DBMS)</option>
+              <option value="OS">Operating Systems (OS)</option>
+            </select>
+          </div>
+          <div>
+            <label for="lesson-topic">Topic</label>
+            <select id="lesson-topic">
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+          <div style="display: flex; gap: 0.5rem; align-items: flex-end;">
+            <button id="load-lesson-btn" class="btn-primary">
+              📖 Teach This Concept
+            </button>
+            <button id="teach-priority-btn" class="btn-outline" style="color: var(--primary-dark); border-color: var(--primary-dark);">
+              ⚡ Teach Weakest
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loaded Lesson Card View -->
+      <div id="lesson-card-view" class="lesson-card" style="display: none;">
+        <div id="lesson-diagnosis-box" class="diagnosis-callout" style="display: none;"></div>
+
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+          <div>
+            <h1 id="lesson-title" class="lesson-title">Concept Title</h1>
+            <p id="lesson-summary" style="font-size: 0.95rem; color: var(--text-muted); font-weight: 500;"></p>
+          </div>
+          <button id="quiz-from-lesson-btn" class="btn-primary" style="font-size: 0.82rem; padding: 0.45rem 0.9rem;">
+            🎯 Quiz This Topic (10 Qs)
+          </button>
+        </div>
+
+        <!-- Section 1: Intuition & Analogy -->
+        <div class="lesson-section">
+          <div class="lesson-section-title">💡 1. The Big Picture & Intuitive Analogy</div>
+          <p id="lesson-analogy" class="lesson-text"></p>
+        </div>
+
+        <!-- Section 2: Core Mechanics -->
+        <div class="lesson-section">
+          <div class="lesson-section-title">⚙️ 2. Core Mechanics & Technical Rules</div>
+          <div id="lesson-mechanics" class="lesson-text"></div>
+        </div>
+
+        <!-- Section 3: Pitfalls & Traps -->
+        <div class="lesson-section">
+          <div class="lesson-section-title">⚠️ 3. Common Traps & Where Students Stumble</div>
+          <div id="lesson-pitfalls" class="lesson-text" style="color: #991B1B;"></div>
+        </div>
+
+        <!-- Section 4: Worked Code / Diagram -->
+        <div class="lesson-section">
+          <div class="lesson-section-title">💻 4. Worked Code Example / Query / Architecture</div>
+          <pre id="lesson-code" class="lesson-code-box"></pre>
+        </div>
+
+        <!-- Section 5: Key Takeaways -->
+        <div class="lesson-section">
+          <div class="lesson-section-title">📝 5. Key Exam Takeaways</div>
+          <ul id="lesson-takeaways" class="lesson-takeaways-list"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= TAB 3: MEMORIES TAB ================= -->
     <section id="tab-memories" class="tab-panel">
       <div class="card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
           <div>
-            <h2 class="card-title" style="margin-bottom: 0.2rem;">Student Cognitive Memories</h2>
+            <h2 class="card-title" style="margin-bottom: 0.2rem;">Live Cognitive Memory Documents</h2>
             <p style="font-size: 0.8rem; color: var(--text-muted);">
-              Persistent memories stored in MongoDB Atlas. Inspect, correct, or delete any record.
+              Persistent memories stored in MongoDB Atlas. Inspect, correct, or delete any record (GDPR Rights).
             </p>
           </div>
           <button id="refresh-memories-btn" class="btn-outline" style="color: var(--primary-dark); border-color: var(--primary-dark);">
@@ -113,7 +254,7 @@
       </div>
     </section>
 
-    <!-- ================= TAB 3: PROGRESS TAB ================= -->
+    <!-- ================= TAB 4: PROGRESS TAB ================= -->
     <section id="tab-progress" class="tab-panel">
       <div class="card">
         <h2 class="card-title">Learning Progression & Accuracy</h2>
@@ -144,49 +285,54 @@
 
   </div>
 
-  <!-- Student Switcher / Creator Modal -->
+  <!-- Student Switcher / Auth Modal -->
   <div id="student-modal" class="modal-overlay">
     <div class="modal">
-      <h2>Select or Create Student</h2>
-      <div style="margin-bottom: 1.25rem;">
-        <label for="existing-student-select">Choose Existing Profile</label>
-        <select id="existing-student-select">
-          <option value="">-- Select Student --</option>
-        </select>
+      <h2>Student Account</h2>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+        Sign in or create a student profile to save your adaptive cognitive memories.
+      </p>
+
+      <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+        <div>
+          <label for="auth-username" style="font-size: 0.85rem; font-weight: 600;">Username</label>
+          <input type="text" id="auth-username" placeholder="e.g. ravi_student" style="width: 100%; padding: 0.5rem; border-radius: 6px; border: 1px solid var(--border-color);">
+        </div>
+        <div>
+          <label for="auth-display-name" style="font-size: 0.85rem; font-weight: 600;">Display Name</label>
+          <input type="text" id="auth-display-name" placeholder="e.g. Ravi Kumar" style="width: 100%; padding: 0.5rem; border-radius: 6px; border: 1px solid var(--border-color);">
+        </div>
+        <div>
+          <label for="auth-password" style="font-size: 0.85rem; font-weight: 600;">Password</label>
+          <input type="password" id="auth-password" placeholder="At least 10 characters" style="width: 100%; padding: 0.5rem; border-radius: 6px; border: 1px solid var(--border-color);">
+        </div>
       </div>
 
-      <div style="text-align: center; margin: 0.75rem 0; font-size: 0.8rem; color: var(--text-muted);">— OR —</div>
-
-      <div>
-        <label for="new-student-name">Create New Profile</label>
-        <input type="text" id="new-student-name" placeholder="Enter student name (e.g. Rahul)">
-      </div>
+      <div id="auth-error" style="color: var(--accent-red); font-size: 0.82rem; margin-top: 0.5rem; display: none;"></div>
 
       <div class="modal-actions">
-        <button id="confirm-student-btn" class="btn-primary">Confirm</button>
+        <button id="modal-cancel-btn" class="btn-outline" style="color: var(--text-main); border-color: var(--border-color);">Cancel</button>
+        <button id="modal-login-btn" class="btn-outline" style="color: var(--primary-dark); border-color: var(--primary-dark);">Log In</button>
+        <button id="modal-signup-btn" class="btn-primary">Create Account</button>
       </div>
     </div>
   </div>
 
-  <!-- Memory Correction Modal -->
+  <!-- Memory Correction Modal (GDPR Sovereignty) -->
   <div id="correct-modal" class="modal-overlay">
     <div class="modal">
       <h2>Correct Cognitive Memory</h2>
-      <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem;">
-        Update the AI's understanding. This marks the previous memory as superseded and records a new strength memory.
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+        Manually override the AI's diagnosis if you feel it misjudged your mastery.
       </p>
-      <div>
-        <label for="correct-content-input">New Understanding Note</label>
-        <input type="text" id="correct-content-input" placeholder="e.g. Student now understands LEFT JOIN semantics" maxlength="300">
-      </div>
+      <textarea id="correct-content" rows="4" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px;" placeholder="I understand SQL Joins now; I just made a typo..."></textarea>
       <div class="modal-actions">
-        <button id="cancel-correct-btn" class="btn-outline" style="color: var(--primary-dark); border-color: var(--primary-dark);">Cancel</button>
-        <button id="save-correct-btn" class="btn-primary">Save Correction</button>
+        <button id="correct-cancel-btn" class="btn-outline" style="color: var(--text-main); border-color: var(--border-color);">Cancel</button>
+        <button id="correct-submit-btn" class="btn-primary">Save Correction</button>
       </div>
     </div>
   </div>
 
-  <!-- Application Logic (Safe Vanilla JS using textContent) -->
-  <script type="module" src="app.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>

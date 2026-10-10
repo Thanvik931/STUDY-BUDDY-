@@ -25,6 +25,7 @@ import studentsRouter from './src/routes/students.js';
 import sessionRouter from './src/routes/session.js';
 import quizRouter from './src/routes/quiz.js';
 import memoriesRouter from './src/routes/memories.js';
+import lessonsRouter from './src/routes/lessons.js';
 import demoRouter from './src/routes/demo.js';
 import stressRouter from './src/routes/stress.js';
 
@@ -213,6 +214,7 @@ app.use('/api', studentsRouter);
 app.use('/api', sessionRouter);
 app.use('/api', quizRouter);
 app.use('/api', memoriesRouter);
+app.use('/api', lessonsRouter);
 
 // Demo routes only if DEMO_MODE and not production (Rule 13.1b)
 if (env.DEMO_MODE && env.NODE_ENV !== 'production') {

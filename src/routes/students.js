@@ -1,62 +1,28 @@
 // src/routes/students.js
-// Handles student profile listing and creation.
-// WHY: In Study Buddy, students pick or create a profile to maintain isolated
-// memories and topic statistics.
+// Deprecated endpoint: Replaced by server-side session authentication (Rule 13.1a).
+// WHY: In Rule 13.1a, the student picker and x-student-id header are replaced by real session auth.
+// This route returns the authenticated user profile for compatibility.
 
 import express from 'express';
-import { getDB } from '../db.js';
-import { studentCreateSchema, validateInput } from '../logic/validators.js';
+import { requireUser } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// GET /api/students - List all student profiles
 router.get('/students', async (req, res, next) => {
-  try {
-    const db = getDB();
-    const students = await db.collection('students')
-      .find({})
-      .sort({ createdAt: -1 })
-      .toArray();
-
-    res.status(200).json({ students });
-  } catch (err) {
-    next(err);
-  }
-});
-
-// POST /api/students - Create a new student profile
-router.post('/students', async (req, res, next) => {
-  const validation = validateInput(studentCreateSchema, req.body);
-  if (!validation.success) {
-    return res.status(400).json({
-      error: {
-        code: 'VALIDATION_ERROR',
-        message: validation.error.issues[0].message
-      }
+  if (req.headers['cookie']) {
+    return requireUser(req, res, () => {
+      res.status(200).json({
+        students: [
+          {
+            _id: req.user._id.toString(),
+            name: req.user.displayName,
+            username: req.user.username
+          }
+        ]
+      });
     });
   }
-
-  try {
-    const db = getDB();
-    const { name } = validation.data;
-    const randomSuffix = Math.random().toString(36).substring(2, 7);
-    const studentId = `stu_${Date.now()}_${randomSuffix}`;
-
-    const studentDoc = {
-      _id: studentId,
-      name,
-      createdAt: new Date()
-    };
-
-    await db.collection('students').insertOne(studentDoc);
-
-    res.status(201).json({
-      message: 'Student created successfully',
-      student: studentDoc
-    });
-  } catch (err) {
-    next(err);
-  }
+  res.status(200).json({ students: [] });
 });
 
 export default router;
