@@ -16,7 +16,8 @@ export async function connectDB() {
   try {
     client = new MongoClient(env.MONGODB_URI, {
       serverSelectionTimeoutMS: 5000, // Do not hang forever if MongoDB is unreachable
-      maxPoolSize: env.MONGO_MAX_POOL // Maintain connection pool size from config (default 20)
+      maxPoolSize: env.MONGO_MAX_POOL, // Maintain connection pool size from config (default 20)
+      maxIdleTimeMS: 60000 // Close idle connections after 60 seconds to release Atlas tier resources
     });
 
     await client.connect();
