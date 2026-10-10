@@ -8,14 +8,14 @@ import Anthropic from '@anthropic-ai/sdk';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { env } from '../config/env.js';
+import { env, getStressFlags } from '../config/env.js';
 import { buildSystemPrompt, buildUserPrompt } from '../logic/promptBuilder.js';
 import { aiGeneratedQuestionSchema, validateInput } from '../logic/validators.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Load question bank for reliable fallback
+// Load question bank for reliable fallback and stress testing
 const questionBankPath = path.join(__dirname, '../../data/questionBank.json');
 const questionBank = JSON.parse(fs.readFileSync(questionBankPath, 'utf-8'));
 
@@ -43,55 +43,90 @@ function getFallbackQuestion(subject, topic) {
 }
 
 /**
- * Attempts a single call to Claude to generate an MCQ.
+ * Executes an async task with a strict timeout (15000ms).
+ * WHY: Exercises identical timeout handling in both live Claude calls and simulated STRESS_MODE.
  */
-async function callClaudeOnce(systemPrompt, userPrompt) {
-  // Resilience simulation flag: simulate complete AI service outage
-  if (env.FAIL_AI) {
-    throw new Error('Simulated AI failure (FAIL_AI=true)');
+async function withTimeout(asyncFn, timeoutMs = 15000) {
+  let timer;
+  const timeoutPromise = new Promise((_, reject) => {
+    timer = setTimeout(() => {
+      reject(new Error(`Operation timed out after ${timeoutMs}ms`));
+    }, timeoutMs);
+  });
+
+  try {
+    return await Promise.race([asyncFn(), timeoutPromise]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
+ * Attempts a single call to Claude or simulated question generator in STRESS_MODE.
+ */
+async function callClaudeOnce(systemPrompt, userPrompt, subject, topic, difficulty) {
+  // STRESS_MODE branch:
+  // (b) aiService does NOT call Claude; serves from questionBank through SAME withTimeout wrapper
+  // (d) honors failAi and delayAiMs runtime flags
+  if (env.STRESS_MODE) {
+    const flags = getStressFlags();
+    return await withTimeout(async () => {
+      if (flags.failAi) {
+        throw new Error('Simulated AI failure (failAi=true in STRESS_MODE)');
+      }
+      if (flags.delayAiMs > 0) {
+        await new Promise((resolve) => setTimeout(resolve, flags.delayAiMs));
+      }
+      const q = getFallbackQuestion(subject, topic);
+      return {
+        question: q.question,
+        options: q.options,
+        correctIndex: q.correctIndex,
+        explanation: q.explanation,
+        difficulty: q.difficulty || difficulty
+      };
+    }, 15000);
   }
 
-  // Artificial latency simulation for stress and timeout testing
-  if (env.DELAY_AI_MS > 0) {
-    await new Promise((resolve) => setTimeout(resolve, env.DELAY_AI_MS));
-  }
-
+  // Normal production mode: Live Claude call with timeout
+  // INVARIANT: When STRESS_MODE is false, failAi / delayAiMs have NO effect!
   if (!anthropicClient) {
     throw new Error('Anthropic API key is not configured.');
   }
 
-  // Set strict 15-second timeout as required by the hackathon spec
-  const response = await anthropicClient.messages.create(
-    {
-      model: env.AI_MODEL || 'claude-3-5-haiku-20241022',
-      max_tokens: 800,
-      system: systemPrompt,
-      messages: [{ role: 'user', content: userPrompt }]
-    },
-    { timeout: 15000 }
-  );
+  return await withTimeout(async () => {
+    const response = await anthropicClient.messages.create(
+      {
+        model: env.AI_MODEL || 'claude-3-5-haiku-20241022',
+        max_tokens: 800,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userPrompt }]
+      },
+      { timeout: 15000 }
+    );
 
-  const rawText = response.content?.[0]?.text?.trim() || '';
+    const rawText = response.content?.[0]?.text?.trim() || '';
 
-  // Clean Markdown formatting (e.g., ```json ... ```)
-  let cleanJson = rawText;
-  if (cleanJson.startsWith('```json')) {
-    cleanJson = cleanJson.slice(7);
-  } else if (cleanJson.startsWith('```')) {
-    cleanJson = cleanJson.slice(3);
-  }
-  if (cleanJson.endsWith('```')) {
-    cleanJson = cleanJson.slice(0, -3);
-  }
+    // Clean Markdown formatting (e.g., ```json ... ```)
+    let cleanJson = rawText;
+    if (cleanJson.startsWith('```json')) {
+      cleanJson = cleanJson.slice(7);
+    } else if (cleanJson.startsWith('```')) {
+      cleanJson = cleanJson.slice(3);
+    }
+    if (cleanJson.endsWith('```')) {
+      cleanJson = cleanJson.slice(0, -3);
+    }
 
-  const parsed = JSON.parse(cleanJson.trim());
-  const validation = validateInput(aiGeneratedQuestionSchema, parsed);
+    const parsed = JSON.parse(cleanJson.trim());
+    const validation = validateInput(aiGeneratedQuestionSchema, parsed);
 
-  if (!validation.success) {
-    throw new Error(`Claude output failed Zod validation: ${validation.error.issues[0]?.message}`);
-  }
+    if (!validation.success) {
+      throw new Error(`Claude output failed Zod validation: ${validation.error.issues[0]?.message}`);
+    }
 
-  return validation.data;
+    return validation.data;
+  }, 15000);
 }
 
 /**
@@ -100,26 +135,31 @@ async function callClaudeOnce(systemPrompt, userPrompt) {
 export async function generateQuestionWithAI({ subject, topic, difficulty, memories = [] }) {
   const systemPrompt = buildSystemPrompt();
   const userPrompt = buildUserPrompt({ subject, topic, difficulty, memories });
+  const startTime = Date.now();
 
   // Attempt 1
   try {
-    const questionData = await callClaudeOnce(systemPrompt, userPrompt);
+    const questionData = await callClaudeOnce(systemPrompt, userPrompt, subject, topic, difficulty);
     return {
       ...questionData,
       degraded: false
     };
   } catch (err1) {
-    console.warn(`Claude question generation attempt 1 failed: ${err1.message}. Retrying once...`);
+    console.warn(`AI question generation attempt 1 failed: ${err1.message}.`);
 
-    // Attempt 2 (Retry once)
-    try {
-      const questionData = await callClaudeOnce(systemPrompt, userPrompt);
-      return {
-        ...questionData,
-        degraded: false
-      };
-    } catch (err2) {
-      console.warn(`Claude question generation attempt 2 failed: ${err2.message}. Gracefully falling back to question bank.`);
+    // S7 Requirement: With delayAiMs=20000, response must arrive within 17s via fallback instead of hanging.
+    // If Attempt 1 timed out (> 12s elapsed), skip Attempt 2 to honor 17s response budget.
+    const elapsed = Date.now() - startTime;
+    if (elapsed < 12000) {
+      try {
+        const questionData = await callClaudeOnce(systemPrompt, userPrompt, subject, topic, difficulty);
+        return {
+          ...questionData,
+          degraded: false
+        };
+      } catch (err2) {
+        console.warn(`AI question generation attempt 2 failed: ${err2.message}. Gracefully falling back to question bank.`);
+      }
     }
   }
 

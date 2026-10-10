@@ -3,7 +3,7 @@
 // WHY: We maintain an in-memory LRU cache of 500 entries (keyed by simple text hash)
 // as an optimization to avoid redundant external network calls for identical queries.
 
-import { env } from '../config/env.js';
+import { env, getStressFlags } from '../config/env.js';
 
 // Simple in-memory LRU cache (capped at 500 entries)
 class LRUCache {
@@ -36,6 +36,28 @@ class LRUCache {
 const embeddingCache = new LRUCache(500);
 
 /**
+ * Generates a deterministic fake vector derived from a 32-bit hash of the text.
+ * Note: Fake vectors carry no meaning, so the stress test measures backend and database behavior, not retrieval quality.
+ */
+function generateDeterministicFakeVector(text, dimensions = 1536) {
+  let hash = 0;
+  for (let i = 0; i < text.length; i++) {
+    hash = (hash * 31 + text.charCodeAt(i)) | 0;
+  }
+  const vector = new Array(dimensions).fill(0);
+  for (let j = 0; j < dimensions; j++) {
+    vector[j] = Math.sin(hash + j);
+  }
+  // Normalize vector to unit length
+  let sumSq = 0;
+  for (let k = 0; k < dimensions; k++) {
+    sumSq += vector[k] * vector[k];
+  }
+  const magnitude = Math.sqrt(sumSq) || 1.0;
+  return vector.map((val) => Number((val / magnitude).toFixed(6)));
+}
+
+/**
  * Creates a deterministic, normalized unit vector for local testing or offline operation.
  */
 function generateLocalVector(text, dimensions = 1536) {
@@ -60,11 +82,19 @@ function generateLocalVector(text, dimensions = 1536) {
  * Checks the in-memory cache first, then calls the configured provider or fallback.
  */
 export async function getEmbedding(text) {
-  // Resilience simulation flag for chaos / stress testing
-  if (env.FAIL_EMBEDDING) {
-    throw new Error('Simulated embedding failure (FAIL_EMBEDDING=true)');
+  // STRESS_MODE Branch:
+  // (c) returns a deterministic fake vector derived from a hash of the text (no paid API call)
+  // (d) honors failEmbedding runtime flag
+  if (env.STRESS_MODE) {
+    const flags = getStressFlags();
+    if (flags.failEmbedding) {
+      throw new Error('Simulated embedding failure (failEmbedding=true in STRESS_MODE)');
+    }
+    return generateDeterministicFakeVector(text, env.EMBEDDING_DIMENSIONS);
   }
 
+  // Normal Production Path:
+  // INVARIANT: When STRESS_MODE is false, failEmbedding has NO effect!
   const cacheKey = text.trim().toLowerCase();
   const cached = embeddingCache.get(cacheKey);
   if (cached) {
