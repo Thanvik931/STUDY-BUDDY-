@@ -1,6 +1,6 @@
 # ️ Study Buddy — Comprehensive Launch Security & Readiness Audit
-**Audit Date:** `2026-10-10T21:30:55.153Z`  
-**Git Commit:** `fdacb03`  
+**Audit Date:** `2026-10-10T22:28:26.201Z`  
+**Git Commit:** `a6899d3`  
 **Environment:** `Node.js v22.19.0` on Windows
 
 ---
@@ -154,17 +154,17 @@ TAP version 13
     # Subtest: 1. Verified user lookup never leaks passwordHash
     ok 1 - 1. Verified user lookup never leaks passwordHash
       ---
-      duration_ms: 49.6058
+      duration_ms: 104.0839
       type: 'test'
       ...
     # Subtest: 2. Account data export includes all student data and omits embeddings/tokenHashes
     ok 2 - 2. Account data export includes all student data and omits embeddings/tokenHashes
       ---
-      duration_ms: 160.3491
+      duration_ms: 301.1645
       type: 'test'
       ...
     # Subtest: 3. Account deletion with incorrect password fails and leaves data intact
-    ok 3 - 3. Account deletion
+    ok 3 - 3. Account deletio
 ... [truncated for report readability]
 ```
 

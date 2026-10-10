@@ -42,5 +42,51 @@
         "content": "• Critical Section Requirements: Mutual Exclusion, Progress, Bounded Waiting.\n• Peterson's Solution: 2-process software solution using flag[2] array and turn variable.\n• TestAndSet / CompareAndSwap: Hardware atomic instructions.\n• Semaphore: S.wait() decrements, S.signal() increments atomically.\n• Classic Problems: Producer-Consumer (Bounded Buffer), Readers-Writers (Reader preference vs Writer preference), Dining Philosophers (Resource hierarchy)."
       }
     ]
+  },
+  "DSA": {
+    "title": "Data Structures & Algorithms (DSA) Master Cheat Sheet",
+    "summary": "Asymptotic Big-O complexities, data structure operations, graph algorithms, and DP patterns.",
+    "sections": [
+      {
+        "heading": "Array & Sorting Complexities",
+        "content": "• Binary Search: O(log N) time, O(1) space on sorted array.\n• QuickSort: O(N log N) average, O(N^2) worst (mitigated by randomized pivot).\n• MergeSort: O(N log N) worst & best, stable, O(N) auxiliary space.\n• HeapSort: O(N log N) worst, in-place O(1) space, not stable."
+      },
+      {
+        "heading": "Graph Traversal Invariants",
+        "content": "• BFS: Queue-based. O(V + E) time, O(V) space. Finds shortest path in unweighted graphs.\n• DFS: Stack / recursion-based. O(V + E) time, O(V) space. Used for cycle detection and topological sorting.\n• Dijkstra: Priority queue. O((V + E) log V). Non-negative edge weights only."
+      },
+      {
+        "heading": "Dynamic Programming Paradigms",
+        "content": "• 0/1 Knapsack: O(N * W) time & space.dp[i][w] = max(dp[i-1][w], val + dp[i-1][w - wt]).\n• Longest Common Subsequence (LCS): O(M * N) time.\n• Longest Increasing Subsequence (LIS): O(N^2) DP or O(N log N) patience sorting with binary search."
+      }
+    ]
+  },
+  "NETWORKING": {
+    "title": "Computer Networks & Protocols Cheat Sheet",
+    "summary": "OSI and TCP/IP stack, handshake sequences, IP routing, subnet masks, and web protocols.",
+    "sections": [
+      {
+        "heading": "OSI vs TCP/IP Mapping",
+        "content": "• Layer 7 (Application): HTTP, DNS, SMTP, SSH.\n• Layer 4 (Transport): TCP (reliable, flow-controlled), UDP (datagram, low-overhead).\n• Layer 3 (Network): IPv4/IPv6, ICMP, BGP, OSPF (Packets & Routing).\n• Layer 2 (Data Link): Ethernet, MAC addresses, ARP, Framing (Frames).\n• Layer 1 (Physical): Bits, cables, radio signals."
+      },
+      {
+        "heading": "TCP Congestion Control States",
+        "content": "• Slow Start: cwnd doubles every RTT until ssthresh.\n• Congestion Avoidance: cwnd increases by 1 MSS per RTT (Additive Increase).\n• Loss on 3 Dup ACKs: Fast Recovery (ssthresh = cwnd/2, Fast Retransmit).\n• Loss on Timeout: Multiplicative Decrease (ssthresh = cwnd/2, cwnd = 1 MSS)."
+      }
+    ]
+  },
+  "SYSTEM_DESIGN": {
+    "title": "System Design & Web Architecture Cheat Sheet",
+    "summary": "Scalability patterns, caching layers, database sharding, CAP theorem, and event-driven queues.",
+    "sections": [
+      {
+        "heading": "CAP Theorem & PACELC",
+        "content": "• Consistency: Every read receives the most recent write.\n• Availability: Every non-failing node returns a response.\n• Partition Tolerance: System continues operating despite dropped network packets.\n• PACELC: If Partitioned (P), choose Availability (A) or Consistency (C); Else (E), trade Latency (L) vs Consistency (C)."
+      },
+      {
+        "heading": "Database Sharding & Replication",
+        "content": "• Horizontal Sharding: Splitting rows across databases by Shard Key (e.g. user_id % N or Range).\n• Read Replicas: Master handles writes and streams binlog to asynchronous Read Slaves.\n• Consistent Hashing: Minimizes key relocations upon node churn to 1/N of keys."
+      }
+    ]
   }
 }

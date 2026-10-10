@@ -12,6 +12,7 @@ import { getDB } from '../db.js';
 import { requireUser } from '../middleware/auth.js';
 import { csrfProtection } from '../middleware/csrf.js';
 import { subjectTopicSchema, answerSubmissionSchema, validateInput } from '../logic/validators.js';
+import { SUBJECTS } from '../config/topics.js';
 import { buildOwnerFilter } from '../logic/filters.js';
 import { processAnswerMemoryRules } from '../services/memoryService.js';
 
@@ -192,9 +193,9 @@ router.post('/quiz/generate-set', requireUser, csrfProtection, async (req, res, 
     const { subject, topic, count = 10 } = req.body;
     const requestedCount = Math.min(Math.max(parseInt(count, 10) || 10, 1), 10);
 
-    if (!subject || !['DBMS', 'OS'].includes(subject)) {
+    if (!subject || !SUBJECTS.includes(subject)) {
       return res.status(400).json({
-        error: { code: 'INVALID_SUBJECT', message: 'Subject must be DBMS or OS' }
+        error: { code: 'INVALID_SUBJECT', message: `Subject must be one of: ${SUBJECTS.join(', ')}` }
       });
     }
 

@@ -168,5 +168,37 @@
       "SCAN (Elevator) sweeps back and forth; C-SCAN sweeps in one direction.",
       "Hard links share the same Inode; soft (symbolic) links have their own Inode pointing to a path."
     ]
+  },
+  "arrays-strings": {
+    "subject": "DSA",
+    "topic": "arrays-strings",
+    "title": "Arrays, Two-Pointers & Sliding Window Mastery",
+    "summary": "Mastering in-place array manipulation, two-pointer convergence, and dynamic sliding windows.",
+    "analogy": "Imagine an accordion or a magnifying glass scanning across a film strip. A sliding window expands its right edge to gather information, and shrinks its left edge when a constraint is violated, processing the entire sequence in a single smooth sweep.",
+    "coreMechanics": "1. Two-Pointer (Opposite Ends): Used for sorted pair searches, palindrome verification, and partition schemes.\n2. Fast & Slow Pointer: Detects cycles in linked lists (Floyd's algorithm) or finds middle elements in O(N).\n3. Sliding Window: Maintains state (sum, character frequency hashmap) across contiguous subarrays in O(N) time.",
+    "commonPitfalls": "• Off-by-one errors in while loops (`left < right` vs `left <= right`).\n• Forgetting to contract the left pointer in dynamic sliding windows when constraints are exceeded.",
+    "codeOrDiagram": "def two_sum_sorted(nums, target):\n    left, right = 0, len(nums) - 1\n    while left < right:\n        cur = nums[left] + nums[right]\n        if cur == target: return [left, right]\n        elif cur < target: left += 1\n        else: right -= 1\n    return []",
+    "examTips": "Whenever a problem asks for 'contiguous subarray with maximum/minimum/length condition', reach immediately for the Sliding Window pattern.",
+    "keyTakeaways": [
+      "Two-pointer reduces O(N^2) brute force to O(N).",
+      "Requires monotonic properties in the array.",
+      "O(1) extra auxiliary space."
+    ]
+  },
+  "caching-redis": {
+    "subject": "SYSTEM_DESIGN",
+    "topic": "caching-redis",
+    "title": "Distributed Caching: Redis, Eviction Policies & Edge CDNs",
+    "summary": "High-throughput in-memory caching to reduce database load and achieve sub-millisecond latencies.",
+    "analogy": "Think of your desktop desk versus a library basement. Reading from RAM/Redis takes 0.5 milliseconds (desk), while disk database access takes 20-100 milliseconds (basement). Caching keeps frequently referenced documents on your desk.",
+    "coreMechanics": "1. Cache Aside: App reads Cache -> on miss reads DB -> populates Cache.\n2. Write Through: App writes to Cache, which synchronously updates DB.\n3. Write Back (Behind): App writes to Cache, which asynchronously flushes to DB in batches.\n4. Eviction Policies: LRU (Least Recently Used), LFU (Least Frequently Used), FIFO.",
+    "commonPitfalls": "• Cache Stampede / Thundering Herd when hot keys expire simultaneously.\n• Cache Penetration: Queries for non-existent keys repeatedly hitting the DB (fix via Bloom Filters or caching nulls).",
+    "codeOrDiagram": "async function getCachedUser(userId) {\n  const cached = await redis.get(`user:${userId}`);\n  if (cached) return JSON.parse(cached);\n  const user = await db.users.findById(userId);\n  await redis.set(`user:${userId}`, JSON.stringify(user), 'EX', 3600);\n  return user;\n}",
+    "examTips": "Always add jitter (random ±5% duration) to TTL expiration times to prevent simultaneous mass cache expiration.",
+    "keyTakeaways": [
+      "Sub-millisecond read throughput.",
+      "Eviction algorithms protect memory ceilings.",
+      "Use Bloom Filters to prevent cache penetration."
+    ]
   }
 }

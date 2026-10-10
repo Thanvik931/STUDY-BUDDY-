@@ -150,10 +150,9 @@ router.get('/progress', requireUser, async (req, res, next) => {
       : 0;
 
     // Format topic breakdown with friendly labels
-    const allTopics = [
-      ...TOPICS.DBMS.map((t) => ({ topic: t, subject: 'DBMS' })),
-      ...TOPICS.OS.map((t) => ({ topic: t, subject: 'OS' }))
-    ];
+    const allTopics = Object.entries(TOPICS).flatMap(([subj, list]) =>
+      list.map((t) => ({ topic: t, subject: subj }))
+    );
 
     const topicBreakdown = allTopics.map(({ topic, subject }) => {
       const found = topicStats.find((s) => s.topic === topic);

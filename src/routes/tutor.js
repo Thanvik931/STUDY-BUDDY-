@@ -72,69 +72,202 @@ router.post('/tutor/chat', requireUser, csrfProtection, async (req, res, next) =
     let tutorReply = '';
     let followUp = '';
 
-    // Attempt Gemini AI response
+    // Attempt Gemini AI response with official models
     if (env.GEMINI_API_KEY) {
-      try {
-        const prompt = `You are a distinguished Computer Science Professor and personal AI Tutor for engineering students.
-${modeInstruction}
+      for (const modelName of ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-flash-latest']) {
+        if (tutorReply) break;
+        try {
+          const prompt = `You are a distinguished Computer Science Professor and personal AI Tutor specializing in ${currentTopic || 'Coding, Data Structures, Algorithms, DBMS, OS, and System Design'}.
+Mode instructions: ${modeInstruction}
 
 STUDENT CONTEXT FROM MONGODB COGNITIVE MEMORY:
+- Mode Selected: ${mode}
 - Active Weaknesses: ${weaknessContext || 'None recorded yet'}
 - Strengths: ${strengthContext || 'None recorded yet'}
-- Topic Context: ${currentTopic || 'General Computer Systems (DBMS & OS)'}
+- Topic Context: ${currentTopic || 'General Computer Science & Engineering'}
 
 STUDENT'S QUESTION:
 "${message.trim()}"
 
-Provide an engaging, clear explanation directly answering the student. End with a short, thought-provoking follow-up question to test their understanding.`;
+Respond strictly according to the selected mode (${mode}):
+- If mode is 'socratic': Use guided inquiry with hints, step-by-step logic, and ask leading questions. Never just output raw answers.
+- If mode is 'eli5': Use a fun, physical, non-technical analogy (kitchen, traffic, library, pizza). No dense jargon.
+- If mode is 'deepdive': Deliver mathematical proofs, Big-O time and space complexity, theorems, and state invariants.
+- If mode is 'debug': Provide code snippets, explain the bug, trace execution step-by-step, and supply the optimal fix.
 
-        const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${env.GEMINI_API_KEY}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ role: 'user', parts: [{ text: prompt }] }],
-            generationConfig: { temperature: 0.4, maxOutputTokens: 1024 }
-          })
-        });
+End with a concise follow-up question to test their understanding.`;
 
-        if (geminiRes.ok) {
-          const geminiData = await geminiRes.json();
-          const generated = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (generated) {
-            tutorReply = generated;
+          const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${env.GEMINI_API_KEY}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ role: 'user', parts: [{ text: prompt }] }],
+              generationConfig: { temperature: 0.4, maxOutputTokens: 1024 }
+            })
+          });
+
+          if (geminiRes.ok) {
+            const geminiData = await geminiRes.json();
+            const generated = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (generated) {
+              tutorReply = generated;
+              break;
+            }
           }
-        }
-      } catch (err) {
-        logger.warn(`Gemini tutor chat call failed: ${err.message}. Using intelligent adaptive tutor engine.`);
+        } catch (_) {}
       }
     }
 
-    // High-yield adaptive tutor fallback if Gemini is unconfigured or throttled
+    // High-yield mode-aware multi-subject adaptive tutor engine fallback
     if (!tutorReply) {
       const lower = message.toLowerCase();
-      if (lower.includes('join') || lower.includes('sql')) {
-        tutorReply = `Great question on SQL Joins! Remember the golden rule:
-• INNER JOIN returns ONLY rows where the join predicate matches in BOTH tables.
-• LEFT JOIN keeps EVERY row from the left table, padding unmatched right attributes with NULL.
-• A common trap is placing right-table conditions in WHERE instead of ON — doing so converts your LEFT JOIN into an INNER JOIN!`;
-        followUp = 'What happens to unmatched left rows if you write `WHERE right_table.status = "active"`?';
-      } else if (lower.includes('b+ tree') || lower.includes('index') || lower.includes('b tree')) {
-        tutorReply = `Database Indexing insight: B+ Trees dominate relational storage because:
-1. Internal nodes store ONLY routing keys (no record pointers), maximizing fanout and keeping tree height low (3-4 levels for billions of rows).
-2. Leaf nodes store all record pointers and are linked sequentially in a doubly linked list, making range queries O(log N + K) sequential scans!`;
-        followUp = 'If node size is 4KB and each key+pointer is 32 bytes, what is the maximum fanout?';
-      } else if (lower.includes('deadlock') || lower.includes('banker')) {
-        tutorReply = `Deadlocks require all 4 Coffman conditions: Mutual Exclusion, Hold & Wait, No Preemption, and Circular Wait.
-Banker's Algorithm prevents deadlock by ensuring that after granting any request, at least ONE safe sequence exists where every process can satisfy its Max Need with available resources!`;
-        followUp = 'How does resource ordering (e.g. always acquire Mutex A before Mutex B) break Circular Wait?';
-      } else if (lower.includes('page') || lower.includes('tlb') || lower.includes('virtual memory')) {
-        tutorReply = `Virtual Memory relies on the TLB (Translation Lookaside Buffer) to cache Virtual Page Number → Physical Frame Number translations.
-A TLB Miss incurs a page table walk in RAM. A Page Fault is far heavier: the page is not in RAM at all, triggering an OS trap to disk swap space!`;
-        followUp = 'Why is the Effective Memory Access Time (EMAT) dominated by the Page Fault rate even if it occurs in 0.1% of accesses?';
+
+      if (mode === 'eli5') {
+        if (lower.includes('sort') || lower.includes('search') || lower.includes('tree') || lower.includes('array') || lower.includes('code') || lower.includes('dsa')) {
+          tutorReply = `ELI5 Analogy (Algorithms & Coding):
+Imagine you are looking for a friend's name in an encyclopedia of 1,000 pages:
+• Linear Search is checking every page from 1 to 1,000 — slow and exhausting!
+• Binary Search is opening the middle page (500). If your friend starts with 'S', you instantly throw away pages 1 to 499! In just 10 quick splits, you find the exact page.
+That is why O(log N) is so ridiculously fast!`;
+          followUp = 'If you doubled the book to 2,000 pages, how many extra page splits would Binary Search need?';
+        } else if (lower.includes('join') || lower.includes('sql') || lower.includes('dbms') || lower.includes('index')) {
+          tutorReply = `ELI5 Analogy (Databases & Indexes):
+Imagine a giant recipe book with 5,000 dishes:
+• Without an index: To find 'Tacos', you must read every single page from the front (Full Table Scan).
+• With a B+ Tree index: You turn to the alphabetical index at the back. It says 'Tacos -> Page 342'. You jump straight there in one second!
+• LEFT JOIN: Think of ordering combos at a diner. You want ALL kids meals (Left Table), and if they pick a toy (Right Table), attach it. If no toy exists, they still get their food with an empty toy slot (NULL)!`;
+          followUp = 'What happens if you throw away the kids who didn\'t get a toy? What kind of JOIN did you just turn it into?';
+        } else if (lower.includes('network') || lower.includes('tcp') || lower.includes('udp') || lower.includes('http')) {
+          tutorReply = `ELI5 Analogy (Computer Networks):
+• TCP is like sending a certified letter with a signed delivery receipt. If the mail carrier drops it in the mud, they apologize and resend it until both parties confirm delivery.
+• UDP is like a live radio broadcast or tossing postcards from an airplane. If static clips out 2 seconds of music, the radio doesn't pause the whole song to replay it — it keeps jamming!`;
+          followUp = 'Why do online multiplayer video games and voice calls use UDP instead of TCP?';
+        } else {
+          tutorReply = `ELI5 Analogy (Operating Systems & Hardware):
+Imagine your computer is a busy restaurant kitchen:
+• The CPU is the chef cooking meals as fast as possible.
+• RAM is the kitchen counter where ingredients are placed right next to the chef.
+• Virtual Memory (Disk) is the basement freezer down two flights of stairs.
+When the counter runs out of space, the chef swaps less-used pots into the basement freezer!`;
+          followUp = 'What happens to kitchen speed if the chef has to run to the basement freezer for every single bite (Thrashing)?';
+        }
+      } else if (mode === 'debug') {
+        if (lower.includes('sort') || lower.includes('search') || lower.includes('array') || lower.includes('code') || lower.includes('dsa') || lower.includes('python')) {
+          tutorReply = `Code Debugger Analysis (Data Structures & Coding):
+Here is the robust, bug-free Two-Pointer pattern to avoid common index traps:
+
+\`\`\`python
+def search_target_range(nums, target):
+    # Bug guard: handle empty or invalid inputs
+    if not nums: return -1
+    
+    left, right = 0, len(nums) - 1
+    # Critical invariant: use left <= right for inclusive search
+    while left <= right:
+        mid = left + (right - left) // 2  # Prevents integer overflow!
+        if nums[mid] == target:
+            return mid  # Found target at O(log N)
+        elif nums[mid] < target:
+            left = mid + 1
+        else:
+            right = mid - 1
+    return -1
+\`\`\`
+Key Trap Spotted: Using \`(left + right) // 2\` can cause integer overflow in languages like C++/Java when values exceed 2^31 - 1. Always use \`left + (right - left) // 2\`.`;
+          followUp = 'What off-by-one error happens if you use `left < right` instead of `left <= right` on a single-element array?';
+        } else if (lower.includes('sql') || lower.includes('join') || lower.includes('dbms')) {
+          tutorReply = `SQL Query Debugger & Optimization:
+Common Bug Diagnosis: Unintentional conversion of outer joins to inner joins.
+
+\`\`\`sql
+-- BUGGY QUERY:
+SELECT u.username, o.order_id 
+FROM users u 
+LEFT JOIN orders o ON u.id = o.user_id 
+WHERE o.status = 'COMPLETED'; -- BUG: Drops users with NO orders because NULL = 'COMPLETED' is false!
+
+-- CORRECT FIX: Move filter into the ON clause:
+SELECT u.username, o.order_id 
+FROM users u 
+LEFT JOIN orders o ON u.id = o.user_id AND o.status = 'COMPLETED';
+\`\`\`
+Performance Note: Ensure a composite index exists on \`orders(user_id, status)\` to prevent full sequential scans!`;
+          followUp = 'How does EXPLAIN ANALYZE show whether PostgreSQL/MySQL utilized your composite index or performed a Seq Scan?';
+        } else {
+          tutorReply = `Systems Concurrency & Race Condition Debugger:
+Common Bug: Missing atomic locks around shared counter increment.
+
+\`\`\`javascript
+// RACE CONDITION:
+// Thread A: read count (0)
+// Thread B: read count (0)
+// Thread A: write count (1)
+// Thread B: write count (1) -> Lost update anomaly!
+
+// FIX: Use atomic primitives or mutex synchronization:
+async function incrementSafely(db, docId) {
+  // MongoDB Atomic $inc avoids application-level race conditions:
+  return await db.collection('counters').updateOne(
+    { _id: docId },
+    { $inc: { seq: 1 } }
+  );
+}
+\`\`\``;
+          followUp = 'Why does atomic `$inc` in MongoDB succeed without distributed transaction locks?';
+        }
+      } else if (mode === 'deepdive') {
+        if (lower.includes('sort') || lower.includes('search') || lower.includes('tree') || lower.includes('dsa') || lower.includes('code')) {
+          tutorReply = `Exam Deep Dive & Mathematical Proofs (Algorithms):
+Theorem: Comparison-based sorting algorithms have a lower bound of Ω(N log N).
+Proof by Decision Tree Model:
+1. Every comparison has 2 outcomes (a_i < a_j or a_i >= a_j), yielding a binary tree.
+2. An array of N distinct elements has N! possible permutations.
+3. To correctly sort all inputs, the decision tree must have at least N! leaves:
+   L >= N!
+4. A binary tree of height h has at most 2^h leaves:
+   2^h >= N!  =>  h >= log2(N!)
+5. By Stirling's Approximation:
+   ln(N!) ≈ N ln(N) - N  =>  log2(N!) = Ω(N log N).
+Therefore, no comparison sort (QuickSort, MergeSort, HeapSort) can beat O(N log N) in the worst case!`;
+          followUp = 'Why can non-comparison sorts like Radix Sort or Counting Sort achieve O(N) time?';
+        } else {
+          tutorReply = `Exam Deep Dive & Rigorous Proofs (Systems & DBMS):
+Theorem: Two-Phase Locking (2PL) guarantees Conflict Serializability.
+Proof Sketch:
+1. Suppose for contradiction that a schedule under 2PL contains a directed cycle in its Precedence Graph: T_1 -> T_2 -> ... -> T_k -> T_1.
+2. T_1 -> T_2 implies T_1 released a lock on data item X before T_2 acquired a conflicting lock on X.
+3. By the 2PL Growing/Shrinking invariant:
+   Once a transaction releases ANY lock, it can NEVER acquire new locks.
+4. Following the cycle:
+   Time(T_1 releases X) < Time(T_2 acquires X) <= Time(T_2 releases Y) < ... < Time(T_1 acquires Z).
+5. This implies Time(T_1 releases first lock) < Time(T_1 acquires last lock), directly violating Phase 2 of 2PL!
+Contradiction. Therefore, the precedence graph is acyclic, ensuring conflict serializability.`;
+          followUp = 'Why does Strict 2PL (holding exclusive locks until COMMIT) prevent cascading aborts in addition to ensuring serializability?';
+        }
       } else {
-        tutorReply = `Hello! I am your AI Engineering Tutor. I'm analyzing your question against your cognitive memory profile.
-In Computer Systems (DBMS & OS), clarity comes from understanding state transitions and invariants. Let's break your query down step-by-step!`;
-        followUp = 'Which specific concept or edge case would you like to explore deeper?';
+        // Socratic Mentor mode
+        if (lower.includes('sort') || lower.includes('search') || lower.includes('array') || lower.includes('tree') || lower.includes('code') || lower.includes('dsa')) {
+          tutorReply = `Socratic Mentor (Coding & Algorithms):
+Let us examine the problem methodically:
+1. What is the fundamental trade-off between time complexity and auxiliary space here?
+2. If your input array is already sorted, can you eliminate half of the search space at each comparison rather than checking element by element?
+3. Think about where your pointers should start: what invariant holds true if one pointer starts at index 0 and the other at index N-1?`;
+          followUp = 'What condition determines whether the left pointer should advance or the right pointer should contract?';
+        } else if (lower.includes('join') || lower.includes('sql') || lower.includes('dbms')) {
+          tutorReply = `Socratic Mentor (Database Architecture):
+Consider what relational algebra tells us about Cartesian products:
+1. If Table A has M rows and Table B has N rows, what is the raw cross-product size?
+2. When you specify a predicate in the ON clause versus the WHERE clause, at which phase of the query evaluation pipeline does the relational engine apply the filter?
+3. If an outer row has no matching partner in the inner table, how should the relational engine preserve the outer tuple?`;
+          followUp = 'If you put `WHERE B.age > 21` after a LEFT JOIN, what happens to rows in A that had no matching B?';
+        } else {
+          tutorReply = `Socratic Mentor (Engineering Systems):
+Welcome! Let us dissect this systems challenge systematically:
+1. What are the state transitions involved when a process requests this shared resource?
+2. Which hardware or kernel invariant prevents two CPU cores from updating this memory word simultaneously?
+3. What is the worst-case failure mode if the network or disk latency spikes by 10x?`;
+          followUp = 'Which specific layer — application code, database index, or kernel scheduler — do you want to analyze first?';
+        }
       }
     }
 
@@ -215,10 +348,9 @@ router.post('/tutor/study-plan', requireUser, csrfProtection, async (req, res, n
     const weakTopicsSet = new Set(weakMemories.map((m) => m.topic));
     const strongTopicsSet = new Set(strengthMemories.map((m) => m.topic));
 
-    const allTopics = [
-      ...TOPICS.DBMS.map((t) => ({ topic: t, subject: 'DBMS' })),
-      ...TOPICS.OS.map((t) => ({ topic: t, subject: 'OS' }))
-    ];
+    const allTopics = Object.entries(TOPICS).flatMap(([subj, list]) =>
+      list.map((t) => ({ topic: t, subject: subj }))
+    );
 
     const criticalList = [];
     const reinforcementList = [];
@@ -304,7 +436,7 @@ router.get('/tutor/flashcards', requireUser, async (req, res, next) => {
   try {
     const { subject } = req.query;
     let list = flashcards;
-    if (subject && (subject === 'DBMS' || subject === 'OS')) {
+    if (subject && SUBJECTS.includes(subject)) {
       list = flashcards.filter((f) => f.subject === subject);
     }
     res.status(200).json({ flashcards: list });

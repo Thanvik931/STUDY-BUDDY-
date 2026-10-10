@@ -658,5 +658,170 @@
     "correctIndex": 0,
     "explanation": "A hard link creates another name in the directory pointing to the same existing Inode number, incrementing the inode link count. The file data is only freed when the link count reaches 0.",
     "difficulty": "medium"
+  },
+  {
+    "id": "dsa-arr-1",
+    "subject": "DSA",
+    "topic": "arrays-strings",
+    "question": "What is the optimal time complexity to find if a pair of integers in a sorted array sums to a target X using the Two-Pointer approach?",
+    "options": [
+      "O(N^2)",
+      "O(N log N)",
+      "O(N)",
+      "O(1)"
+    ],
+    "correctIndex": 2,
+    "explanation": "With the array already sorted, placing one pointer at index 0 and the other at index N-1 allows us to find the pair in a single pass of O(N) time and O(1) space.",
+    "difficulty": "easy"
+  },
+  {
+    "id": "dsa-arr-2",
+    "subject": "DSA",
+    "topic": "arrays-strings",
+    "question": "In the Sliding Window technique for longest substring without repeating characters, what is the amortized cost per character?",
+    "options": [
+      "O(N^2)",
+      "O(N)",
+      "O(1)",
+      "O(log N)"
+    ],
+    "correctIndex": 2,
+    "explanation": "Each character is visited at most twice (once by the right pointer entering, and at most once by the left pointer contracting), giving O(1) amortized work per element.",
+    "difficulty": "medium"
+  },
+  {
+    "id": "dsa-tree-1",
+    "subject": "DSA",
+    "topic": "trees-graphs",
+    "question": "Which graph traversal uses a FIFO Queue and guarantees finding the shortest path in an unweighted graph?",
+    "options": [
+      "Depth-First Search (DFS)",
+      "Breadth-First Search (BFS)",
+      "Dijkstra's Algorithm",
+      "Topological Sort"
+    ],
+    "correctIndex": 1,
+    "explanation": "Breadth-First Search (BFS) explores all vertices level-by-level using a queue, guaranteeing the shortest path in unweighted graphs.",
+    "difficulty": "easy"
+  },
+  {
+    "id": "dsa-tree-2",
+    "subject": "DSA",
+    "topic": "trees-graphs",
+    "question": "What is the worst-case time complexity of finding an element in a binary search tree (BST) that is skewed (unbalanced)?",
+    "options": [
+      "O(log N)",
+      "O(N)",
+      "O(N log N)",
+      "O(1)"
+    ],
+    "correctIndex": 1,
+    "explanation": "In a degenerate or skewed BST where every node has only one child, the tree degenerates into a singly linked list with O(N) lookup time.",
+    "difficulty": "medium"
+  },
+  {
+    "id": "dsa-dp-1",
+    "subject": "DSA",
+    "topic": "dynamic-programming",
+    "question": "What are the two essential properties a problem must possess to be solvable via Dynamic Programming?",
+    "options": [
+      "Optimal Substructure and Overlapping Subproblems",
+      "Greedy Choice Property and Divide-and-Conquer",
+      "Monotonicity and Acyclic Dependencies",
+      "Sequential Invariance and Memoization"
+    ],
+    "correctIndex": 0,
+    "explanation": "Dynamic programming requires Optimal Substructure (optimal solution constructed from optimal sub-solutions) and Overlapping Subproblems (subproblems recomputed repeatedly).",
+    "difficulty": "medium"
+  },
+  {
+    "id": "dsa-sort-1",
+    "subject": "DSA",
+    "topic": "sorting-searching",
+    "question": "Why is MergeSort strictly preferred over QuickSort for sorting linked lists?",
+    "options": [
+      "MergeSort does not require random access and runs in O(N log N) without O(N) auxiliary array copying on linked nodes",
+      "QuickSort cannot partition nodes",
+      "MergeSort uses O(1) space on arrays",
+      "Linked lists cannot be divided into halves"
+    ],
+    "correctIndex": 0,
+    "explanation": "MergeSort works naturally with sequential pointer manipulation on linked lists in O(N log N) without needing random access indexing.",
+    "difficulty": "hard"
+  },
+  {
+    "id": "net-osi-1",
+    "subject": "NETWORKING",
+    "topic": "osi-tcp-ip",
+    "question": "At which layer of the OSI model do Routers operate to forward packets based on logical IP addresses?",
+    "options": [
+      "Data Link Layer (Layer 2)",
+      "Network Layer (Layer 3)",
+      "Transport Layer (Layer 4)",
+      "Session Layer (Layer 5)"
+    ],
+    "correctIndex": 1,
+    "explanation": "Routers operate at Network Layer (Layer 3), inspecting IP headers to make forwarding decisions across subnetworks.",
+    "difficulty": "easy"
+  },
+  {
+    "id": "net-tcp-1",
+    "subject": "NETWORKING",
+    "topic": "transport-protocols",
+    "question": "In TCP congestion control, what triggers the Fast Retransmit mechanism before the retransmission timer expires?",
+    "options": [
+      "Receipt of 3 duplicate ACKs",
+      "A FIN packet from receiver",
+      "Window size scaling to zero",
+      "SYN packet timeout"
+    ],
+    "correctIndex": 0,
+    "explanation": "Fast Retransmit is triggered upon receiving 3 duplicate ACKs for the same segment, inferring packet loss without waiting for a retransmission timeout.",
+    "difficulty": "hard"
+  },
+  {
+    "id": "net-dns-1",
+    "subject": "NETWORKING",
+    "topic": "dns-http",
+    "question": "What is the primary difference between HTTP/1.1 and HTTP/2 in handling multiplexing over a single TCP connection?",
+    "options": [
+      "HTTP/1.1 requires pipelining subject to Head-of-Line blocking; HTTP/2 interleaves binary frames over bidirectional streams",
+      "HTTP/2 eliminates all TCP handshakes",
+      "HTTP/1.1 uses UDP while HTTP/2 uses TCP",
+      "HTTP/2 sends plain text ASCII headers"
+    ],
+    "correctIndex": 0,
+    "explanation": "HTTP/2 breaks requests and responses into binary frames multiplexed over a single TCP connection, eliminating application-layer Head-of-Line blocking.",
+    "difficulty": "medium"
+  },
+  {
+    "id": "sys-cache-1",
+    "subject": "SYSTEM_DESIGN",
+    "topic": "caching-redis",
+    "question": "In a Cache-Aside (Lazy Loading) architecture, what is the sequence of operations on a cache miss?",
+    "options": [
+      "Read from DB, write to Cache, return data to client",
+      "Write to DB, purge cache, return data",
+      "Return 404, query asynchronously",
+      "Send request directly to CDN"
+    ],
+    "correctIndex": 0,
+    "explanation": "On a cache miss, the application reads the authoritative data from the database, writes the result into the cache for future requests, and returns it to the client.",
+    "difficulty": "easy"
+  },
+  {
+    "id": "sys-load-1",
+    "subject": "SYSTEM_DESIGN",
+    "topic": "load-balancing",
+    "question": "Consistent Hashing solves which critical problem when adding or removing nodes from a distributed cache cluster?",
+    "options": [
+      "Minimizes key remapping so only K/N keys need relocation instead of nearly 100% of keys",
+      "Prevents single points of failure in DNS",
+      "Forces all requests to route through a master node",
+      "Eliminates network latency completely"
+    ],
+    "correctIndex": 0,
+    "explanation": "With standard hash mod N, changing N remaps almost every key. Consistent Hashing places nodes and keys on a virtual ring, so only K/N keys move when a node joins or leaves.",
+    "difficulty": "hard"
   }
 ]

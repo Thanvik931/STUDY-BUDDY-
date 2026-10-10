@@ -9,7 +9,7 @@ import { logger } from '../utils/logger.js';
 /**
  * Attempts to call Google Gemini API with timeout and error handling.
  */
-async function callGeminiApi(prompt, model = 'gemini-2.5-flash', timeoutMs = 8000) {
+async function callGeminiApi(prompt, model = 'gemini-1.5-flash', timeoutMs = 8000) {
   if (!env.GEMINI_API_KEY) {
     throw new Error('GEMINI_API_KEY is not configured');
   }
@@ -92,7 +92,7 @@ Return ONLY a JSON object with this exact structure:
 
   // Try calling Gemini API
   if (env.GEMINI_API_KEY) {
-    for (const model of ['gemini-2.5-flash', 'gemini-flash-latest']) {
+    for (const model of ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-flash-latest']) {
       try {
         const geminiResult = await callGeminiApi(prompt, model, 7000);
         if (geminiResult && geminiResult.coreMechanics) {

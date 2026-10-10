@@ -88,5 +88,41 @@
     "back": "An Inode contains metadata (size, permissions, timestamps) and direct/indirect block pointers:\n- 12 Direct Pointers: Point directly to disk data blocks.\n- 1 Singly Indirect: Points to a block filled with data block pointers.\n- 1 Doubly Indirect: Points to a block of indirect pointer blocks.\n- 1 Triply Indirect: Enables huge multi-terabyte file addressing.",
     "keyFormula": "Max Blocks = 12 + (B/4) + (B/4)^2 + (B/4)^3 where B is block size in bytes (4-byte pointers).",
     "examTip": "Hard links share the same inode number (cannot cross filesystems); Soft (Symbolic) links have their own inode containing the path string of the target."
+  },
+  {
+    "id": "fc-dsa-1",
+    "subject": "DSA",
+    "topic": "arrays-strings",
+    "front": "When is the Two-Pointer pattern applicable and what is its primary efficiency benefit?",
+    "back": "Applicable on monotonic or sorted sequences (or two sequences moving synchronously).\nIt eliminates nested loops, reducing time complexity from O(N^2) to O(N) with O(1) extra space.",
+    "keyFormula": "Time: O(N), Space: O(1) via while (left < right)",
+    "examTip": "Always watch out for array bounds and off-by-one errors when advancing indices."
+  },
+  {
+    "id": "fc-dsa-2",
+    "subject": "DSA",
+    "topic": "dynamic-programming",
+    "front": "What is the key difference between Top-Down Memoization and Bottom-Up Tabulation in Dynamic Programming?",
+    "back": "Top-Down (Memoization) uses recursion with a lookup cache, evaluating only reachable subproblems.\nBottom-Up (Tabulation) iteratively fills an array/table from smallest base cases upward, avoiding recursion stack overhead and enabling space optimization.",
+    "keyFormula": "Tabulation: dp[i] = min/max/sum(dp[i - k]) + cost",
+    "examTip": "If state dp[i] depends only on dp[i-1] and dp[i-2], you can optimize auxiliary space from O(N) to O(1) using two variables!"
+  },
+  {
+    "id": "fc-net-1",
+    "subject": "NETWORKING",
+    "topic": "transport-protocols",
+    "front": "Explain the TCP 3-Way Handshake and why a 2-Way Handshake is insufficient.",
+    "back": "1. Client -> Server: SYN (seq = x)\n2. Server -> Client: SYN-ACK (seq = y, ack = x + 1)\n3. Client -> Server: ACK (ack = y + 1)\nA 2-Way Handshake fails because delayed duplicate SYN packets could cause the server to allocate resources for a dead connection.",
+    "keyFormula": "SYN -> SYN-ACK -> ACK",
+    "examTip": "Remember that the final ACK can carry piggybacked data from client to server."
+  },
+  {
+    "id": "fc-sys-1",
+    "subject": "SYSTEM_DESIGN",
+    "topic": "caching-redis",
+    "front": "What is Cache Stampede (Thundering Herd) and how do you prevent it?",
+    "back": "Occurs when a high-traffic key expires, causing thousands of concurrent requests to simultaneously miss the cache and overwhelm the underlying database.\nPrevention: Mutex locking (single-flight cache load), probabilistic early expiration (XFetch), or background cache pre-warming.",
+    "keyFormula": "P(recompute) = -β * δ * ln(rand()) > (expiry - now)",
+    "examTip": "Use jitter (random time offset) on TTLs so large batches of keys don't expire at the exact same second!"
   }
 ]

@@ -8,22 +8,87 @@
 
 import { api } from './api.js';
 
-// Supported subjects and topics
+// Supported subjects and topics across all 5 engineering domains
 const TOPICS = {
   DBMS: [
     { id: 'sql-joins', label: 'SQL Joins (INNER, LEFT, RIGHT, FULL)' },
     { id: 'er-model-keys', label: 'ER Model & Keys (Primary, Foreign, Candidate)' },
     { id: 'normalization', label: 'Normalization (1NF, 2NF, 3NF, BCNF)' },
     { id: 'transactions-acid', label: 'Transactions & ACID Properties' },
-    { id: 'indexing', label: 'Database Indexing (B+ Trees, Hash)' }
+    { id: 'indexing', label: 'Database Indexing (B+ Trees, Hash Indexes)' }
   ],
   OS: [
-    { id: 'process-scheduling', label: 'Process Scheduling (Round Robin, SJF, FCFS)' },
+    { id: 'process-scheduling', label: 'CPU Process Scheduling (FCFS, SJF, Round Robin)' },
     { id: 'deadlocks', label: 'Deadlocks & Banker\'s Algorithm' },
     { id: 'memory-paging', label: 'Virtual Memory & Paging (TLB, Page Faults)' },
     { id: 'synchronization', label: 'Process Synchronization & Semaphores' },
-    { id: 'file-systems', label: 'File Systems & Inodes' }
+    { id: 'file-systems', label: 'File Systems & Disk Allocation' }
+  ],
+  DSA: [
+    { id: 'arrays-strings', label: 'Arrays, Two Pointers & Sliding Window' },
+    { id: 'trees-graphs', label: 'Binary Trees & Graph Traversals (BFS/DFS)' },
+    { id: 'dynamic-programming', label: 'Dynamic Programming & Memoization' },
+    { id: 'sorting-searching', label: 'Binary Search & Sorting Invariants' },
+    { id: 'recursion-backtracking', label: 'Recursion, Backtracking & Permutations' }
+  ],
+  NETWORKING: [
+    { id: 'osi-tcp-ip', label: 'OSI Model & TCP/IP Protocol Stack' },
+    { id: 'transport-protocols', label: 'TCP Flow/Congestion Control vs UDP' },
+    { id: 'dns-http', label: 'DNS, HTTP/1.1, HTTP/2 & HTTPS Handshake' },
+    { id: 'routing-ip', label: 'IP Addressing, Subnetting & Routing (BGP/OSPF)' },
+    { id: 'network-security', label: 'Firewalls, TLS/SSL & Cryptography' }
+  ],
+  SYSTEM_DESIGN: [
+    { id: 'rest-graphql', label: 'REST APIs vs GraphQL Architecture' },
+    { id: 'caching-redis', label: 'Caching Strategies (LRU, Write-Through) & Redis' },
+    { id: 'load-balancing', label: 'Load Balancing, Horizontal Scaling & Sharding' },
+    { id: 'event-driven', label: 'Message Queues (Kafka, RabbitMQ) & Events' },
+    { id: 'microservices-security', label: 'Microservices, JWT Authentication & Rate Limiting' }
   ]
+};
+
+// Distinct Tutor Personas with unique voices, greetings, and curated quick prompts
+const TUTOR_PERSONAS = {
+  socratic: {
+    title: 'Socratic Mentor',
+    greeting: 'Welcome! I am your Socratic Mentor. I will guide you with probing questions, step-by-step hints, and thought experiments rather than spoon-feeding direct answers. What engineering puzzle, concurrency trap, or algorithm would you like to explore together?',
+    quickPrompts: [
+      'Why does B+ Tree have higher fanout than B-Tree?',
+      'How does Banker\'s Algorithm prove a state is safe?',
+      'Why does strict 2PL prevent cascading aborts?',
+      'Why is Dijkstra not guaranteed to work with negative edge weights?'
+    ]
+  },
+  eli5: {
+    title: 'Explain Like I\'m 5',
+    greeting: 'ELI5 Tutor activated! Forget dense academic jargon. I explain database indexing, virtual memory paging, sliding windows, and distributed load balancers using intuitive real-world analogies (like filing cabinets, pizza kitchens, and highway toll booths). What concept shall we demystify today?',
+    quickPrompts: [
+      'Explain B+ Tree indexing like an organized library catalogue',
+      'Explain CPU Scheduling like a restaurant head chef managing orders',
+      'Explain Sliding Window algorithm like a train window on tracks',
+      'Explain TCP 3-way handshake like two walkie-talkie operators'
+    ]
+  },
+  deepdive: {
+    title: 'Exam Deep Dive & Proofs',
+    greeting: 'Exam Deep Dive & Proofs Mode activated. Here we break down formal proofs, invariant equations, mathematical boundary conditions, and university examination edge cases across DBMS, OS, DSA, Networks, and System Design. What theorem or algorithm shall we rigorously dissect?',
+    quickPrompts: [
+      'Prove that Strict 2PL guarantees conflict serializability',
+      'Derive the asymptotic complexity proof for Banker\'s safety check: O(M * N^2)',
+      'Explain Master Theorem cases with recursion tree derivations',
+      'Prove why TCP slow start increases cwnd exponentially per RTT'
+    ]
+  },
+  debug: {
+    title: 'Code & SQL Debugger',
+    greeting: 'Code & SQL Debugger Mode active! Bring me your complex SQL queries, C++/Python algorithms, race conditions, or cache invalidation logic. I analyze edge cases, time/space trade-offs, concurrency bugs, and output clean, optimized code. What code or query are we debugging?',
+    quickPrompts: [
+      'Debug SQL query: Why is my LEFT JOIN producing duplicate rows?',
+      'Optimize code: Two-pointer vs sliding window for maximum subarray sum',
+      'Trace race condition: Mutex deadlock in dining philosophers problem',
+      'Analyze LRU Cache implementation with O(1) get and put using HashMap & DLL'
+    ]
+  }
 };
 
 // Application State
@@ -155,11 +220,13 @@ const quizFromLessonBtn = document.getElementById('quiz-from-lesson-btn');
 // Sidebar & Navigation Controls
 const sidebarStudentName = document.getElementById('sidebar-student-name');
 const sidebarMobileToggle = document.getElementById('sidebar-mobile-toggle');
+const sidebarCollapseBtn = document.getElementById('sidebar-collapse-btn');
 const appSidebar = document.getElementById('app-sidebar');
 const topHeaderTitle = document.getElementById('top-header-title');
 const sidebarExportBtn = document.getElementById('sidebar-export-btn');
 const sidebarLogoutBtn = document.getElementById('sidebar-logout-btn');
 const sidebarDeleteBtn = document.getElementById('sidebar-delete-btn');
+const quickPromptsContainer = document.getElementById('quick-prompts-container');
 
 // Tab 3: Flashcards Elements
 const flashcardCounterBadge = document.getElementById('flashcard-counter-badge');
@@ -170,6 +237,9 @@ const fcFlipAllBtn = document.getElementById('fc-flip-all-btn');
 const fcFilterAll = document.getElementById('fc-filter-all');
 const fcFilterDbms = document.getElementById('fc-filter-dbms');
 const fcFilterOs = document.getElementById('fc-filter-os');
+const fcFilterDsa = document.getElementById('fc-filter-dsa');
+const fcFilterNetworking = document.getElementById('fc-filter-networking');
+const fcFilterSystemDesign = document.getElementById('fc-filter-system_design');
 const fcGridView = document.getElementById('fc-grid-view');
 const fcDeckView = document.getElementById('fc-deck-view');
 const fcCardsGrid = document.getElementById('fc-cards-grid');
@@ -224,6 +294,9 @@ const spMasteredContainer = document.getElementById('sp-mastered-container');
 // Tab 6: Cheat Sheets Elements
 const csSubjDbmsBtn = document.getElementById('cs-subj-dbms-btn');
 const csSubjOsBtn = document.getElementById('cs-subj-os-btn');
+const csSubjDsaBtn = document.getElementById('cs-subj-dsa-btn');
+const csSubjNetworkingBtn = document.getElementById('cs-subj-networking-btn');
+const csSubjSystemDesignBtn = document.getElementById('cs-subj-system_design-btn');
 const csTitle = document.getElementById('cs-title');
 const csSummary = document.getElementById('cs-summary');
 const csSectionsGrid = document.getElementById('cs-sections-grid');
@@ -370,18 +443,11 @@ function setupEventListeners() {
   tutorChatForm.addEventListener('submit', handleTutorChatSubmit);
   tutorModeButtons.forEach((btn) => {
     btn.addEventListener('click', () => {
-      tutorModeButtons.forEach((b) => b.classList.remove('active'));
-      btn.classList.add('active');
-      currentTutorMode = btn.dataset.mode;
+      switchTutorMode(btn.dataset.mode, true);
     });
   });
   tutorReadAloudBtn.addEventListener('click', () => speakText(lastTutorReplyText));
-  quickPromptButtons.forEach((btn) => {
-    btn.addEventListener('click', () => {
-      tutorChatInput.value = btn.textContent;
-      handleTutorChatSubmit(new Event('submit'));
-    });
-  });
+  switchTutorMode('socratic', false);
 
   // Tab 1: Quiz
   selectSubject.addEventListener('change', () => populateTopics(selectSubject.value, selectTopic));
@@ -432,6 +498,15 @@ function setupEventListeners() {
   if (fcFilterOs) {
     fcFilterOs.addEventListener('click', () => filterFlashcardsBySubject('OS'));
   }
+  if (fcFilterDsa) {
+    fcFilterDsa.addEventListener('click', () => filterFlashcardsBySubject('DSA'));
+  }
+  if (fcFilterNetworking) {
+    fcFilterNetworking.addEventListener('click', () => filterFlashcardsBySubject('NETWORKING'));
+  }
+  if (fcFilterSystemDesign) {
+    fcFilterSystemDesign.addEventListener('click', () => filterFlashcardsBySubject('SYSTEM_DESIGN'));
+  }
 
   if (flashcardElement) flashcardElement.addEventListener('click', toggleFlashcardFlip);
   if (fcPrevBtn) fcPrevBtn.addEventListener('click', prevFlashcard);
@@ -463,15 +538,24 @@ function setupEventListeners() {
   refreshStudyplanBtn.addEventListener('click', loadStudyPlan);
 
   // Tab 6: Cheat Sheets
-  csSubjDbmsBtn.addEventListener('click', () => {
-    csSubjDbmsBtn.className = 'btn-primary';
-    csSubjOsBtn.className = 'btn-outline';
-    loadCheatSheet('DBMS');
-  });
-  csSubjOsBtn.addEventListener('click', () => {
-    csSubjOsBtn.className = 'btn-primary';
-    csSubjDbmsBtn.className = 'btn-outline';
-    loadCheatSheet('OS');
+  const csButtons = [
+    { btn: csSubjDbmsBtn, subject: 'DBMS' },
+    { btn: csSubjOsBtn, subject: 'OS' },
+    { btn: csSubjDsaBtn, subject: 'DSA' },
+    { btn: csSubjNetworkingBtn, subject: 'NETWORKING' },
+    { btn: csSubjSystemDesignBtn, subject: 'SYSTEM_DESIGN' }
+  ];
+
+  csButtons.forEach(({ btn, subject }) => {
+    if (btn) {
+      btn.addEventListener('click', () => {
+        csButtons.forEach((item) => {
+          if (item.btn) item.btn.className = 'btn-outline';
+        });
+        btn.className = 'btn-primary';
+        loadCheatSheet(subject);
+      });
+    }
   });
 
   // Tab 7: Memories
@@ -479,11 +563,21 @@ function setupEventListeners() {
   correctCancelBtn.addEventListener('click', () => closeCorrectModal());
   correctSubmitBtn.addEventListener('click', () => submitMemoryCorrection());
 
-  // Sidebar Toggle & Actions
-  if (sidebarMobileToggle && appSidebar) {
-    sidebarMobileToggle.addEventListener('click', () => {
+  // Sidebar Toggle (Desktop Collapse & Mobile Drawer via 3-Layer Button)
+  const toggleAppSidebar = () => {
+    if (!appSidebar) return;
+    if (window.innerWidth > 900) {
+      appSidebar.classList.toggle('collapsed');
+    } else {
       appSidebar.classList.toggle('open');
-    });
+    }
+  };
+
+  if (sidebarMobileToggle) {
+    sidebarMobileToggle.addEventListener('click', toggleAppSidebar);
+  }
+  if (sidebarCollapseBtn) {
+    sidebarCollapseBtn.addEventListener('click', toggleAppSidebar);
   }
   if (sidebarExportBtn) sidebarExportBtn.addEventListener('click', () => exportUserData());
   if (sidebarLogoutBtn) sidebarLogoutBtn.addEventListener('click', () => handleLogout());
@@ -566,7 +660,7 @@ function switchTab(tabId) {
     quiz: 'Adaptive Quiz (10-Question Master Set)',
     lessons: 'Concept Lessons & Engineering Deep Dives',
     flashcards: 'Spaced Repetition & Active Recall Flashcards',
-    mockexam: '⏱️ Timed Mock Exam Simulator (15 Questions)',
+    mockexam: 'Timed Mock Exam Simulator (15 Questions)',
     studyplan: 'AI Study Planner & Readiness Roadmap',
     cheatsheet: 'High-Yield Revision Cheat Sheets',
     memories: 'MongoDB Cognitive Memory Inspector',
@@ -580,7 +674,10 @@ function switchTab(tabId) {
     appSidebar.classList.remove('open');
   }
 
-  if (tabId === 'tutor') loadTutorChatHistory();
+  if (tabId === 'tutor') {
+    loadTutorChatHistory();
+    switchTutorMode(currentTutorMode, false);
+  }
   if (tabId === 'flashcards') loadFlashcards();
   if (tabId === 'studyplan') loadStudyPlan();
   if (tabId === 'memories') loadMemories();
@@ -675,6 +772,44 @@ function showFormAlert(alertEl, msg) {
 }
 
 // --- 1-ON-1 AI TUTOR CHAT ENGINE ---
+
+function switchTutorMode(mode, appendGreeting = true) {
+  if (!TUTOR_PERSONAS[mode]) return;
+  currentTutorMode = mode;
+  const persona = TUTOR_PERSONAS[mode];
+
+  tutorModeButtons.forEach((b) => {
+    b.classList.toggle('active', b.dataset.mode === mode);
+  });
+
+  // Dynamically render the quick prompts for this persona
+  if (quickPromptsContainer) {
+    quickPromptsContainer.innerHTML = '';
+    const label = document.createElement('span');
+    label.style.fontSize = '0.78rem';
+    label.style.fontWeight = '600';
+    label.style.color = 'var(--text-muted)';
+    label.style.alignSelf = 'center';
+    label.textContent = `Quick Prompts (${persona.title}):`;
+    quickPromptsContainer.appendChild(label);
+
+    persona.quickPrompts.forEach((promptText) => {
+      const chip = document.createElement('button');
+      chip.className = 'lesson-chip quick-prompt-btn';
+      chip.textContent = promptText;
+      chip.addEventListener('click', () => {
+        tutorChatInput.value = promptText;
+        handleTutorChatSubmit(new Event('submit'));
+      });
+      quickPromptsContainer.appendChild(chip);
+    });
+  }
+
+  if (appendGreeting) {
+    appendChatBubble('tutor', persona.greeting);
+    lastTutorReplyText = persona.greeting;
+  }
+}
 
 async function handleTutorChatSubmit(e) {
   if (e && e.preventDefault) e.preventDefault();
@@ -1164,6 +1299,42 @@ const DEFAULT_FLASHCARDS = [
     back: "An Inode contains metadata (size, permissions, timestamps) and direct/indirect block pointers:\n- 12 Direct Pointers: Point directly to disk data blocks.\n- 1 Singly Indirect: Points to a block filled with data block pointers.\n- 1 Doubly Indirect: Points to a block of indirect pointer blocks.\n- 1 Triply Indirect: Enables huge multi-terabyte file addressing.",
     keyFormula: "Max Blocks = 12 + (B/4) + (B/4)^2 + (B/4)^3 where B is block size in bytes (4-byte pointers).",
     examTip: "Hard links share the same inode number (cannot cross filesystems); Soft (Symbolic) links have their own inode containing the path string of the target."
+  },
+  {
+    id: "fc-dsa-1",
+    subject: "DSA",
+    topic: "arrays-strings",
+    front: "When is the Two-Pointer pattern applicable and what is its primary efficiency benefit?",
+    back: "Applicable on monotonic or sorted sequences (or two sequences moving synchronously).\nIt eliminates nested loops, reducing time complexity from O(N^2) to O(N) with O(1) extra space.",
+    keyFormula: "Time: O(N), Space: O(1) via while (left < right)",
+    examTip: "Always watch out for array bounds and off-by-one errors when advancing indices."
+  },
+  {
+    id: "fc-dsa-2",
+    subject: "DSA",
+    topic: "dynamic-programming",
+    front: "What is the key difference between Top-Down Memoization and Bottom-Up Tabulation in Dynamic Programming?",
+    back: "Top-Down (Memoization) uses recursion with a lookup cache, evaluating only reachable subproblems.\nBottom-Up (Tabulation) iteratively fills an array/table from smallest base cases upward, avoiding recursion stack overhead and enabling space optimization.",
+    keyFormula: "Tabulation: dp[i] = min/max/sum(dp[i - k]) + cost",
+    examTip: "If state dp[i] depends only on dp[i-1] and dp[i-2], you can optimize auxiliary space from O(N) to O(1) using two variables!"
+  },
+  {
+    id: "fc-net-1",
+    subject: "NETWORKING",
+    topic: "transport-protocols",
+    front: "Explain the TCP 3-Way Handshake and why a 2-Way Handshake is insufficient.",
+    back: "1. Client -> Server: SYN (seq = x)\n2. Server -> Client: SYN-ACK (seq = y, ack = x + 1)\n3. Client -> Server: ACK (ack = y + 1)\nA 2-Way Handshake fails because delayed duplicate SYN packets could cause the server to allocate resources for a dead connection.",
+    keyFormula: "SYN -> SYN-ACK -> ACK",
+    examTip: "Remember that the final ACK can carry piggybacked data from client to server."
+  },
+  {
+    id: "fc-sys-1",
+    subject: "SYSTEM_DESIGN",
+    topic: "caching-redis",
+    front: "What is Cache Stampede (Thundering Herd) and how do you prevent it?",
+    back: "Occurs when a high-traffic key expires, causing thousands of concurrent requests to simultaneously miss the cache and overwhelm the underlying database.\nPrevention: Mutex locking (single-flight cache load), probabilistic early expiration (XFetch), or background cache pre-warming.",
+    keyFormula: "P(recompute) = -β * δ * ln(rand()) > (expiry - now)",
+    examTip: "Use jitter (random time offset) on TTLs so large batches of keys don't expire at the exact same second!"
   }
 ];
 
@@ -1199,22 +1370,27 @@ async function loadFlashcards(subject = 'ALL') {
 
 function filterFlashcardsBySubject(subj) {
   currentFcSubject = subj;
-  [fcFilterAll, fcFilterDbms, fcFilterOs].forEach((b) => {
+  const pills = [fcFilterAll, fcFilterDbms, fcFilterOs, fcFilterDsa, fcFilterNetworking, fcFilterSystemDesign];
+  pills.forEach((b) => {
     if (b) {
       b.style.backgroundColor = 'var(--bg-card)';
       b.style.color = 'var(--primary-dark)';
     }
   });
 
-  if (subj === 'ALL' && fcFilterAll) {
-    fcFilterAll.style.backgroundColor = 'var(--primary-dark)';
-    fcFilterAll.style.color = '#FFFFFF';
-  } else if (subj === 'DBMS' && fcFilterDbms) {
-    fcFilterDbms.style.backgroundColor = 'var(--primary-dark)';
-    fcFilterDbms.style.color = '#FFFFFF';
-  } else if (subj === 'OS' && fcFilterOs) {
-    fcFilterOs.style.backgroundColor = 'var(--primary-dark)';
-    fcFilterOs.style.color = '#FFFFFF';
+  const activeBtnMap = {
+    ALL: fcFilterAll,
+    DBMS: fcFilterDbms,
+    OS: fcFilterOs,
+    DSA: fcFilterDsa,
+    NETWORKING: fcFilterNetworking,
+    SYSTEM_DESIGN: fcFilterSystemDesign
+  };
+
+  const activeBtn = activeBtnMap[subj];
+  if (activeBtn) {
+    activeBtn.style.backgroundColor = 'var(--primary-dark)';
+    activeBtn.style.color = '#FFFFFF';
   }
 
   loadFlashcards(subj);
