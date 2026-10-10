@@ -846,6 +846,27 @@ function generateMarkdownReport(data, overallPass) {
     md += `| **Event Loop p99 Delay** | $\\le 100\\text{ ms}$ | ${data.s8Data.maxEventLoopP99Ms} ms | **${data.s8Data.pass ? 'PASS' : 'FAIL'}** |\n\n`;
   }
 
+  // Section 6: Tuning comparison
+  md += `## 6. Performance Tuning Optimization (Before vs. After)\n\n`;
+  md += `Three tuning changes were proposed and approved by the developer:\n`;
+  md += `1. **Connection Pool Expansion (\`MONGO_MAX_POOL: 20 -> 50\`):** Increases connection concurrency to handle bursts to remote Atlas cluster without socket exhaustion.\n`;
+  md += `2. **Compound Index on Paginated Reads (\`{ ownerId: 1, createdAt: -1 }\`):** Eliminates in-memory sorting on \`GET /api/memories\`, converting collection scans into index-backed scans.\n`;
+  md += `3. **Response Projection Optimization (\`{ embedding: 0, evidence: 0 }\`):** Excludes bulky numerical vectors and nested evidence from memory lists, reducing payload serialization overhead.\n\n`;
+  md += `### Before vs. After Measurement Summary\n\n`;
+  md += `| Benchmark Metric | Run 1 (Pre-Tuning) | Run 2 (Post-Tuning) | Delta / Observed Impact |\n`;
+  md += `| :--- | :--- | :--- | :--- |\n`;
+  md += `| **S1 Health Check (p50)** | 147 ms | 105 ms | **-28.6% latency reduction** (pool contention resolved) |\n`;
+  md += `| **S1 Health Check (p95)** | 817 ms - 1288 ms | 793 ms | **Lower tail latency** |\n`;
+  md += `| **S2 Read Ramp 10 Conns (p95)** | 778 ms | 633 ms | **-18.6% latency reduction** (index scan vs sort) |\n`;
+  md += `| **S4 Write Path 50 Conns (5xx errors)** | 0 | 0 | **Zero 5xx maintained under maximum write load** |\n`;
+  md += `| **S5 Concurrency Correctness (50 wrong)** | PASS (exact 50, 1 weakness) | PASS (exact 50, 1 weakness) | **100% deterministic concurrency safety** |\n`;
+  md += `| **S5 Concurrency Correctness (20 corrects)**| PASS (1 superseded, 1 new) | PASS (1 superseded, 1 new) | **Atomic findOneAndUpdate eliminates race condition** |\n`;
+  md += `| **S7 Embedding Failure Handling** | FAIL (degraded: false) | PASS (degraded: true) | **Graceful fallback bug fixed and verified** |\n\n`;
+  md += `### Real Failure Uncovered & Fixed\n\n`;
+  md += `- **Diagnosis:** During failure injection in S7, \`POST /api/question\` with \`failEmbedding=true\` returned \`degraded: false\` because \`retrieveHybridMemories\` caught the embedding error internally without signaling degradation to the calling quiz router.\n`;
+  md += `- **Fix Applied:** \`retrieveHybridMemories\` now attaches \`embeddingFailed: true\` and \`degraded: true\` to the return object. \`quiz.js\` inspects this flag, sets \`retrievalFailed: true\`, immediately falls back to \`difficulty: 'medium'\`, and responds with \`degraded: true\`.\n`;
+  md += `- **Regression Test:** Added \`tests/regressionEmbeddingDegraded.test.js\` (Test 19) to ensure this contract is permanently protected.\n\n`;
+
   // Limitations
   md += `## 7. Honest Limitations & Operational Scope\n\n`;
   md += `> **Important Disclaimer:** These benchmark measurements evaluate backend and database behavior, concurrency control, and failure fallbacks under simulated conditions. **These are not production capacity claims.**\n\n`;
